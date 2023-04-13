@@ -1,0 +1,153 @@
+# Installation of Podman Desktop on Linux
+# ---------------------------------------
+
+#########################################################
+### Install podman desktop from flatpak using FlatHub ###
+# Can verify only released bits
+# Requirements
+# ---------------------------------------
+# install flatpak
+$ dnf install -y flatpak
+# Enable flathub
+$ flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+###################################################
+# Flatpak flathub installation process
+# ---------------------------------------
+# Search (we can add some checks for version/existence)
+$ flatpak search io.podman_desktop.PodmanDesktop
+# Name                       Description                                                                      Application ID                              Version            Branch            Remotes
+# Podman Desktop             Manage Podman and other container engines from a single UI and tray.             io.podman_desktop.PodmanDesktop             0.13.0             stable            flathub
+
+# Install
+$ flatpak install io.podman_desktop.PodmanDesktop -y
+Looking for matches…
+
+io.podman_desktop.PodmanDesktop permissions:
+    ipc    network    x11    dri   file access [1]   dbus access [2]
+
+    [1] /run/docker.sock, home, xdg-run/podman:create
+    [2] org.freedesktop.Flatpak, org.freedesktop.Notifications, org.kde.StatusNotifierWatcher
+
+
+        ID                                        Branch           Op           Remote            Download
+ 1.     io.podman_desktop.PodmanDesktop           stable           i            flathub           < 112.8 MB
+
+Proceed with these changes to the system installation? [Y/n]: ^C[odockal@fedora ~]$ flatpak install io.podman_desktop.PodmanDesktop -y
+Looking for matches…
+
+io.podman_desktop.PodmanDesktop permissions:
+    ipc    network    x11    dri   file access [1]   dbus access [2]
+
+    [1] /run/docker.sock, home, xdg-run/podman:create
+    [2] org.freedesktop.Flatpak, org.freedesktop.Notifications, org.kde.StatusNotifierWatcher
+
+
+        ID                                        Branch           Op           Remote            Download
+ 1. [✓] io.podman_desktop.PodmanDesktop           stable           i            flathub           110.9 MB / 112.8 MB
+
+Installation complete.
+
+# Verification
+$ flatpak info io.podman_desktop.PodmanDesktop
+
+Podman Desktop - Manage Podman and other container engines from a single UI and
+tray.
+
+          ID: io.podman_desktop.PodmanDesktop
+         Ref: app/io.podman_desktop.PodmanDesktop/x86_64/stable
+        Arch: x86_64
+      Branch: stable
+     Version: 0.13.0
+     License: Apache-2.0
+      Origin: flathub
+  Collection: org.flathub.Stable
+Installation: system
+   Installed: 307.9 MB
+     Runtime: org.freedesktop.Platform/x86_64/22.08
+         Sdk: org.freedesktop.Sdk/x86_64/22.08
+
+      Commit: 1d80f787c3d39d72194086ed5f1db2e13fd2a780046d0920283725cbf66c0d66
+      Parent: ba076191f66475a9403868c0eb156228ad9dec76633e41a7c06f10fcc6b61e87
+     Subject: chore: Update to v0.13.0 (902d4c5c)
+        Date: 2023-03-29 13:57:58 +0000
+
+# Resources check
+# Flatpak location of the installed Application - desktop file
+# $ ls /var/lib/flatpak/app/io.podman_desktop.PodmanDesktop/current/active/export/share/applications/io.podman_desktop.PodmanDesktop.desktop should not return exit code != 0
+
+$ cat /var/lib/flatpak/app/io.podman_desktop.PodmanDesktop/current/active/export/share/applications/io.podman_desktop.PodmanDesktop.desktop
+[Desktop Entry]
+Name=Podman Desktop
+Exec=/usr/bin/flatpak run --branch=stable --arch=x86_64 --command=run.sh --file-forwarding io.podman_desktop.PodmanDesktop @@u %U @@
+Terminal=false
+Type=Application
+Icon=io.podman_desktop.PodmanDesktop
+StartupWMClass=Podman Desktop
+Categories=Utility;
+X-Flatpak=io.podman_desktop.PodmanDesktop
+
+# Uninstall if needed
+$ flatpak io.podman_desktop.PodmanDesktop uninstall  -y
+#############################################################
+
+############################################################
+### Install podman desktop using flatpak package locally ###
+# Requirements
+# ---------------------------------------
+$ sudo apt-get update
+$ sudo apt-get install flatpak -y
+$ sudo apt-get install flatpak-builder -y
+$ sudo apt-get install elfutils -y
+$ flatpak remote-add --if-not-exists flathub --user https://flathub.org/repo/flathub.flatpakrepo
+$ flatpak install flathub --no-static-deltas --user -y org.freedesktop.Platform//22.08 org.freedesktop.Sdk//22.08
+
+# Flatpak installation process from local file
+# --------------------------------------------
+# Get the flatpak file - download from github
+$ wget https://github.com/containers/podman-desktop/releases/download/v0.13.0/podman-desktop-0.13.0.flatpak
+
+# Get a flatpak and tarball file from localy built repo
+$ yarn install
+$ yarn compile:current
+# Find flatpak in podman-desktop/dist/podman-desktop-x.y.z-next.flatpak
+$ filename=$(ls podman-desktop/dist/ | grep podman-desktop-*.flatpak)
+$ flatpak install $filename
+# same output as from flathub, same check
+# Verification process
+$ flatpak run io.podman_desktop.PodmanDesktop &> podman-desktop-start.log &
+ps -aux | grep podman-desktop, etc.
+$ grep -Rni "Error" podman-desktop-start.log
+$ pkill -15 podman-desktop
+$? == 0
+$ grep -Rni "Error\|Warning" podman-desktop-start.log | wc -l
+$ grep -Rni "Autostarting container engine" podman-desktop-start.log | wc -l
+############################################################################
+
+############################################################
+### Install podman desktop using flatpak package locally ###
+# Requirements
+# ---------------------------------------
+$ sudo dnf install gpp-c++
+# have a node installed + yarn + npm
+
+
+# Tarball installation process from local file
+# --------------------------------------------
+# Get the tarball file - download from github
+$ wget https://github.com/containers/podman-desktop/releases/download/v0.13.0/podman-desktop-0.13.0.tar.gz
+
+# Get a tarball file from localy build
+$ yarn install
+$ yarn compile:current
+# Find tarball in podman-desktop/dist/podman-desktop-x.y.z-next.tag.gz
+$ filename=$(ls podman-desktop/dist/ | grep podman-desktop-*.tar.gz)
+$ tar -xvf $filename
+# we need to find binary, get the path and execute it
+# Verification process
+$ ./path/to/binary &> podman-desktop-start.log &
+# ps -aux | grep podman-desktop, etc., kill the process
+$ pkill -15 podman-desktop
+$ grep -Rni "Error\|Warning" podman-desktop-start.log | wc -l
+$ grep -Rni "Autostarting container engine" podman-desktop-start.log | wc -l
+###########################################################################
