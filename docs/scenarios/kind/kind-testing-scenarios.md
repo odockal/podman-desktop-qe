@@ -1,4 +1,4 @@
-# Podman Desktop Kind integration on Linux
+# Podman Desktop Kind integration setup and scenarios
 
 ## Topics
 * [Aim](#aim)
@@ -163,7 +163,10 @@ Install Kubernetes cluster using kind, deploy an application from image and acce
 #### 7. Summary
 We were able to create a local kubernetes cluster using kind with specific configuration in order to expose containers running inside the cluster. Eventually we deployed the application and provided a way to expose the app in container using kubernetes service.
 
-## Podman Desktop Kind integration on multiple OSes
+## Podman Desktop Kind integration
+
+Let's see how can we make use of Podman Desktop to onboard kind worflows on multiple OSes.
+
 We have two options here in order to make sure our kubernetes containers are available from our host:
 1. Configure kubernetes control plane when creating cluster with kind: `kind create cluster --config=control.yaml`
     * we do not have that option to pass an yaml file into kind command in podman desktop (ToDo - fill issue)
@@ -219,18 +222,19 @@ The beginning of the scenario differs depending on the OS, but at some point sce
 * You probably need to restart podman machine (using podman desktop)
 * Now you should be able to create kubernetes cluster using kind with rootless podman machine
 
+#### Using Rootfull podman machine on Windows
+See [known issues](#known-issues).
+* Set podman machine (`podman-machine-default`) to be rootful:
+    * powershell: `podman machine set --rootful`
+* Restart podman machine and try to create Kind cluster -> Now it should work
+
+
 ### Mac OS Kind integration in Podman Desktop
 1. Install Podman Desktop using brew
 * `brew install podman-desktop`
 2. Run Podman Desktop and Install Podman
 3. Initialize podman
 4. ToDo - same steps as for windows?
-
-#### Using Rootfull podman machine on Windows
-See [known issues](#known-issues).
-* Set podman machine (`podman-machine-default`) to be rootful:
-    * powershell: `podman machine set --rootful`
-* Restart podman machine and try to create Kind cluster -> Now it should work
 
 ### Scenario and verification steps - same for all platforms
 1. Install Kind binary
