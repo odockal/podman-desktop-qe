@@ -1,15 +1,22 @@
 # Podman Desktop Kind integration on Linux
 
 ## Topics
-
+* [Aim](#aim)
 * [Prerequisities](#prerequisities)
+* [Basic scenario](#basic-scenario)
+* [Podman Desktop Kind integration on multiple OSes](#podman-desktop-kind-integration)
 * [Resources](#resources)
+
+## Aim
+As a developer, I would like to deploy and run an image locally on my kubernetes cluster created using kind so that I can access the running application in kubernetes cluster from my machine.
 
 ## Prerequisities
 * `podman` - [download and install](https://podman.io/getting-started/installation#installing-on-linux)
-* `kubectl` - [download and install](https://kubernetes.io/docs/tasks/tools/) (put on path)
+* `kubectl` - [download and install](https://kubernetes.io/docs/tasks/tools/) (on PATH)
 
-## Manual Kind installation and quick start
+## Basic scenario
+Install Kubernetes cluster using kind, deploy an application from image and access it from local machine. This is a summary of what we want to do in Podman Desktop. Let's do it manually first in order to show it is possible.
+
 #### 1. Get and install `kind`
 * `kind` - [download and install](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
 
@@ -153,47 +160,106 @@
     10.244.0.1 - - [17/Apr/2023:17:36:04 +0000] "GET / HTTP/1.1" 200 45
     10.244.0.1 - - [17/Apr/2023:17:43:06 +0000] "GET / HTTP/1.1" 200 45
     ```
+#### 7. Summary
+We were able to create a local kubernetes cluster using kind with specific configuration in order to expose containers running inside the cluster. Eventually we deployed the application and provided a way to expose the app in container using kubernetes service.
 
-## Podman Desktop Kind integration (the same aim, different path)
-We have two options here, make sure deployed container on kubernetes cluster is available from outside (Manual scenario) or to use Kind cluster creation option (Ingress node with use of project contour), see https://github.com/containers/podman-desktop/pull/1980.
-* Start kind cluster with setting up ingress controller
-* Deploy proper kubernetes manifest via Play Kubernetes Yaml, see below
-* Alternative using `kubectl`: `kubectl apply -f https://projectcontour.io/examples/httpbin.yaml`
-* Testing app should be available on `http://localhost:9090` - needs to be verified
+## Podman Desktop Kind integration on multiple OSes
+We have two options here in order to make sure our kubernetes containers are available from our host:
+1. Configure kubernetes control plane when creating cluster with kind: `kind create cluster --config=control.yaml`
+    * we do not have that option to pass an yaml file into kind command in podman desktop (ToDo - fill issue)
+2. Use provided option to use ingress controller via podman desktop, see https://github.com/containers/podman-desktop/pull/1980 (unverified)
+    * Start kind cluster with enabled ingress controller
+    * Deploy proper kubernetes manifest via Play Kubernetes Yaml, see below
+    * Alternative using `kubectl`: `kubectl apply -f https://projectcontour.io/examples/httpbin.yaml`
+    * Testing app should be available on `http://localhost:9090`
+3. Other option are currently under development
+* https://github.com/containers/podman-desktop/pull/2149
+
+The beginning of the scenario differs depending on the OS, but at some point scenarios are the same
 
 ### Linux Kind integration on Podman Desktop
-1. Have podman installed and Open PD
-2. Install Kind
-3. Start Cluster in Settings -> Resources
-4. Check the presence of `kind-control-plane` container
-5. Pull an image
-6. Start a container
-7. Create a pod from container => Deploy to Kubernetes
-8. Check tak pod is created
-9. Verify deployed podified application that is available on kubernetes cluster (ToDo)
+1. Have podman installed on your machine
+2. Download, install and run Podman Desktop
 
-### Windows and Mac OS Kind integration on Podman Desktop
-1. requires podman
-    *  Install podman, initialize and start it
-2. Download the kind for the system via PD -> click on Kind button in bottom left corner
-3. go to settings -> resources and check Kind resource
-4. Create new kind cluster via Kind -> create new...
-5. Choose correct fields (defaults) and click create
-6. verify the form and click `Show Logs` to verify the progress, you will get a message that you can
-7. If your podman machine did not have root connection set you need to:
-    *  go to powershell and run `podman system connection default podman-machine-default-root` to make podman system connection with root the one that is default
-    *  restart podman machine in settings -> resources
-8. Create a kind cluster (Settings -> Resources)
-9. Verify that cluster was created (powershell) and that it exists on Kind Resources (known issue) in Settings
-10. Check the presence of `kind-control-plane` container
-11. Pull an image
-12. Start a container
-13. Create a pod from container => Deploy to Kubernetes
-14. Check tak pod is created
-15. Verify deployed podified application that is available on kubernetes cluster (ToDo)
+
+### Windows Kind integration in Podman Desktop
+1. Download and install Podman Desktop
+2. Install podman
+3. Choose to perform one of rootfull/rootless setups of podman machine
+    *  initialize podman via podman desktop
+    *  Choose one of approaches - rootfull or rootless, see below.
+
+#### Using rootless podman provider on Windows
+* wsl installed on the system with default version 2, we do not need to have distro installed (podman will do that)
+* create `.wslconfig` file in your home with this content:
+    ```sh
+    [wsl2]
+    kernelCommandLine = cgroup_no_v1=all
+    ```
+* Update wsl: `wsl --update`
+* Initialize and start podman machine using podman desktop
+* in powershell: `podman machine ssh`
+* Run with `sudo`:
+*   `mkdir /etc/systemd/system/user@.service.d/`
+*   Insert this content into `/etc/systemd/system/user@.service.d/delegate.conf`
+    ```sh
+    [Service]
+    Delegate=yes
+    ```
+* run `systemctl daemon-reload`
+* Create `mkdir /etc/modules-load.d`
+* Insert content into `iptables.conf`
+    ```sh
+    ip6_tables
+    ip6table_nat
+    ip_tables
+    iptable_nat
+    ```
+* exit the machine
+* You probably need to restart podman machine (using podman desktop)
+* Now you should be able to create kubernetes cluster using kind with rootless podman machine
+
+### Mac OS Kind integration in Podman Desktop
+1. Install Podman Desktop using brew
+* `brew install podman-desktop`
+2. Run Podman Desktop and Install Podman
+3. Initialize podman
+4. ToDo - same steps as for windows?
+
+#### Using Rootfull podman machine on Windows
+See [known issues](#known-issues).
+* Set podman machine (`podman-machine-default`) to be rootful:
+    * powershell: `podman machine set --rootful`
+* Restart podman machine and try to create Kind cluster -> Now it should work
+
+### Scenario and verification steps - same for all platforms
+1. Install Kind binary
+2. Options to use integrated ingress controller - contour
+* Option A, using integrated support for ingress controller using Controur project
+    1. Start Cluster in Settings -> Resources with ingress controller enabled
+* Option B, providing connectivity to the kubernetes cluster with our own means
+    1. See `kind-local-port-mapping.yaml` kube. manifest and use cli to set it up.
+    2. `kind create cluster --config=kind-local-port-mapping.yaml`
+3. Check the presence of `kind-control-plane` container
+4. Options how get an image and build an app.
+* Option to deploy the app with pulling an image using podman desktop
+    1. Pull an image (httpd)
+    6. Start a container (httpd)
+    7. Create a pod from container => Deploy to Kubernetes
+    8. Check that pod is created
+    9. Verify deployed podified application that is available on kubernetes cluster, should utilize kind provided port (9090)
+    10. This scenario has (ToDo)
+* Option to push an image to the kind cluster and creating a pod from YAML with expected image
+    1. Pull an image (httpd)
+    2. Push to kind
+    3. Play kubernetes Yaml with proper content (ToDo)
+* Option to create whole app and services using Play Kubernetes Yaml
+    1.  define pods, services and ingress kubernetes objects in yaml(ToDo)
+5. Verification
+
 
 ## Known issues
-* When behind VPN, the restrictor can cause network or some services inaccessibility in containers, could results in container errors like `ErrImagePull` or `ImagePullBackOff`, to debug use `kubectl desribe pod <pod-name>`, resources: [Kubernetes ImagePullBackOff error](https://www.tutorialworks.com/kubernetes-imagepullbackoff/)
+* When behind VPN, the network restriction can cause network or some services inaccessibility in containers, could results in container errors like `ErrImagePull` or `ImagePullBackOff`, to debug use `kubectl desribe pod <pod-name>`, resources: [Kubernetes ImagePullBackOff error](https://www.tutorialworks.com/kubernetes-imagepullbackoff/)
 * When on Windows, there seems to be a problem for Kind cluster discovery in Podman Desktop. It happens when podman engine is using a machine with root priviledges (a connection with root user):
     * Start Podman desktop
     * Set default podman system coonection the one with root use access (`podman system connection ls`, `podman system connection default podman-machine-default-root`)
@@ -208,3 +274,4 @@ We have two options here, make sure deployed container on kubernetes cluster is 
 * ALternatives to using a `kind` for application deployment [Minikube vs. Kind vs. k3s](https://shipit.dev/posts/minikube-vs-kind-vs-k3s.html)
 * [Running kind with rootless podman does not work as documented](https://github.com/kubernetes-sigs/kind/issues/2872)
 * [Creating Kubernetes cluster for development with Kind](https://faun.pub/creating-a-kubernetes-cluster-for-development-with-kind-189df2cb0792)
+
