@@ -183,6 +183,7 @@ The beginning of the scenario differs depending on the OS, but at some point sce
 ### Linux Kind integration on Podman Desktop
 1. Have podman installed on your machine
 2. Download, install and run Podman Desktop
+3. Verify Podman is running in Settings -> Resources
 
 
 ### Windows Kind integration in Podman Desktop
@@ -228,13 +229,15 @@ See [known issues](#known-issues).
     * powershell: `podman machine set --rootful`
 * Restart podman machine and try to create Kind cluster -> Now it should work
 
+4. Start Podman
+5. Verify that podman is running in Settings -> Resources
 
 ### Mac OS Kind integration in Podman Desktop
 1. Install Podman Desktop using brew
 * `brew install podman-desktop`
 2. Run Podman Desktop and Install Podman
-3. Initialize podman
-4. ToDo - same steps as for windows?
+3. Initialize and start podman
+4. Verify that resources shows podman machine running
 
 ### Scenario and verification steps - same for all platforms
 1. Install Kind binary
@@ -253,10 +256,25 @@ See [known issues](#known-issues).
     8. Check that pod is created
     9. Verify deployed podified application that is available on kubernetes cluster, should utilize kind provided port (9090)
     10. This scenario has (ToDo)
-* Option to push an image to the kind cluster and creating a pod from YAML with expected image
+* Option to [push an image to the kind cluster](https://podman-desktop.io/docs/kubernetes/kind/pushing-an-image-to-kind) and creating a pod from YAML with expected image loaded from kind
     1. Pull an image (httpd)
     2. Push to kind
-    3. Play kubernetes Yaml with proper content (ToDo)
+    3. Remove image from podman
+    4. Create httpd-verification.yaml file:
+    ```yaml
+    apiVersion: v1
+    kind: Pod
+      metadata:
+        name: httpd-verification
+    spec:
+      containers:
+      - name: httpd
+        image: httpd:latest
+        imagePullPolicy: Always
+    ```
+    5. Play Kubernetes Yaml, choose kubernetes/kind context
+    6. Verify that pod is running under Pods
+    7. `kubectl get pods` - httpd-verification pod exists
 * Option to create whole app and services using Play Kubernetes Yaml
     1.  define pods, services and ingress kubernetes objects in yaml(ToDo)
 5. Verification
