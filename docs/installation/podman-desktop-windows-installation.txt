@@ -1,0 +1,191 @@
+# Installation of Podman Desktop on Windows
+1. Installation
+2. Location verification through PowerShell 
+3. Launch verification through PowerShell
+4. Basic app verification
+
+##################
+### Chocolatey ###
+##################
+# Requirements
+- Chocolatey package manager installed
+
+# Chocolatey installation process
+https://chocolatey.org/install
+
+# Podman Desktop installation console steps
+$ choco install podman-desktop 
+(to uninstall run > choco uninstall podman-desktop)
+
+# Podman Desktop installation console output
+Chocolatey v1.3.0
+Installing the following packages:
+podman-desktop
+By installing, you accept licenses for the packages.
+Progress: Downloading podman-desktop 0.13.0... 100%
+
+podman-desktop v0.13.0 [Approved]
+podman-desktop package files install completed. Performing other installation steps.
+The package podman-desktop wants to run 'chocolateyInstall.ps1'.
+Note: If you don't run this script, the installation will fail.
+Note: To confirm automatically next time, use '-y' or consider:
+choco feature enable -n allowGlobalConfirmation
+Do you want to run the script?([Y]es/[A]ll - yes to all/[N]o/[P]rint): A
+
+Downloading podman-desktop 64 bit
+  from 'https://github.com/containers/podman-desktop/releases/download/v0.13.0/podman-desktop-0.13.0-setup.exe'
+Progress: 100% - Completed download of C:\cygwin\tmp\chocolatey\podman-desktop\0.13.0\podman-desktop-0.13.0-setup.exe (111.89 MB) completed.
+Hashes match.
+Installing podman-desktop...
+podman-desktop has been installed.
+  podman-desktop can be automatically uninstalled.
+ The install of podman-desktop was successful.
+  Software installed as 'exe', install location is likely default.
+
+Chocolatey installed 1/1 packages.
+ See the log for details (C:\ProgramData\chocolatey\logs\chocolatey.log).
+
+
+#############
+### Scoop ###
+#############
+# Requirements
+- Scoop package manager installed
+
+# Scoop installation process
+https://github.com/ScoopInstaller/Install#readme
+
+# Podman Desktop installation console steps
+$ scoop bucket add extras
+$ scoop install podman-desktop
+(to uninstall run > scoop uninstall podman-desktop)
+
+# Podman Desktop installation console output
+(scoop bucket add extras)
+Checking repo... OK
+The extras bucket was added successfully.
+
+(scoop install podman-desktop)
+Installing '7zip' (22.01) [64bit] from main bucket
+7z2201-x64.msi (1,8 MB [=====================================================================================] 100%
+Checking hash of 7z2201-x64.msi ... ok.
+Extracting 7z2201-x64.msi ... done.
+Linking ~\scoop\apps\7zip\current => ~\scoop\apps\7zip\22.01
+Creating shim for '7z'.
+Creating shim for '7zFM'.
+Creating shim for '7zG'.
+Creating shortcut for 7-Zip (7zFM.exe)
+Persisting Codecs
+Persisting Formats
+Running post_install script...
+'7zip' (22.01) was installed successfully!
+Notes
+-----
+Add 7-Zip as a context menu option by running: "C:\Users\user\scoop\apps\7zip\current\install-context.reg"
+Installing 'podman-desktop' (0.13.0) [64bit] from extras bucket
+podman-desktop-0.13.0.exe (111,7 MB) [========================================================================] 100%
+Checking hash of podman-desktop-0.13.0.exe ... ok.
+Extracting dl.7z ... done.
+Running pre_install script...
+Linking ~\scoop\apps\podman-desktop\current => ~\scoop\apps\podman-desktop\0.13.0
+Creating shortcut for Podman Desktop (Podman Desktop.exe)
+'podman-desktop' (0.13.0) was installed successfully!
+
+
+##############
+### Winget ###
+##############
+# Requirements
+- Winget Package manager for Windows installed 
+
+# Winget installation process
+Winget command-line tool is available on Win11 and modern versions of Win10 as a part of the App Installer. With older Win versions use:
+https://aka.ms/getwinget
+
+# Podman Desktop installation console steps
+$ winget install -e --id RedHat.Podman-Desktop
+(to uninstall run > winget install -e --id RedHat.Podman-Desktop)
+
+# Podman Desktop installation console output
+The `msstore` source requires that you view the following agreements before using.
+Terms of Transaction: https://aka.ms/microsoft-store-terms-of-transaction
+The source requires the current machine's 2-letter geographic region to be sent to the backend service to function properly (ex. "US").
+
+Do you agree to all the source agreements terms?
+[Y] Yes [N] No: Y
+# -- this message only pops up with first winget installation usage
+Found Podman Desktop [RedHat.Podman-Desktop] Version 0.13.0
+This application is licensed to you by its owner.
+Microsoft is not responsible for, nor does it grant any licences to, third-party packages.
+Downloading https://github.com/containers/podman-desktop/releases/download/v0.13.0/podman-desktop-0.13.0-setup.exe
+		111 MB / 111 MB
+Starting package instal...
+Successfully installed
+
+
+####################################
+### Silent/Headless installation ###
+####################################
+# Requirements
+- Podman Desktop Windows installer downloaded
+
+# Windows installer
+https://podman-desktop.io/downloads/windows
+
+# Podman Desktop installation console steps
+$ Start-Process -FilePath '.\podman-desktop-0.13.0-setup.exe' -ArgumentList "\S" -Wait
+
+# Podman Desktop installation process 
+No console output, terminal starts the installation in a separate window, after successfull installation Podman Desktop app launches.
+
+
+###########################
+### Portable executable ###
+###########################
+# Requirements 
+- Podman Desktop Windows portable executable downloaded
+
+# Windows portable executable
+https://podman-desktop.io/downloads
+
+# Podman Desktop launch
+$ cd folder_with_the_executable
+$ podman-desktop-0.13.0.exe
+
+
+#####################################################
+### Airgapped/Restricted environment installation ###
+#####################################################
+# Requirements 
+- Linux WSL installed (not required for only testing the installation)
+- Windows installer for restricted environments downloaded 
+
+# Windows installer for restricted environments 
+https://podman-desktop.io/downloads/windows
+
+# Podman Desktop installation process 
+Same as headless.
+
+
+##########################
+### Local installation ###
+##########################
+# Requirements
+- node.js >=v16.3 installed
+- npm >= 8.1 installed
+
+# Compile process console steps
+- clone and cd repo
+$ npm install
+$ npm run compile:current
+-> Headless and restricted environment install
+$ Start-Process -FilePath '.\dist\podman-desktop-0.15.0-next-setup.exe' -ArgumentList "\S" -Wait
+(this installs podman desktop and opens it right away, works the same without internet connection)
+-> Portable executable 
+$ .\dist\win-unpacked\"Podman Desktop.exe"
+$ .\dist\podman-desktop-0.15.0-next.exe
+(different ways to run it, both start at a different podman desktop view)
+-> choco install from local chocolatey repo downloads from github anyways, doesn't work
+-> scoop and winget need manifests for local install but those also just download the package from specified urls, don't work
+
+
