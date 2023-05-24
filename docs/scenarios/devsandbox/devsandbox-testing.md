@@ -6,8 +6,9 @@
 ## Instalation and start up of Red Hat OpenShift Sandbox extension
 
 1. Open Podman Desktop Settings -> Extensions
-2. Install a new extension from OCI Image -> `ghcr.io/redhat-developer/podman-desktop-sandbox-ext:latest`
+2. Install a new extension from OCI Image -> `ghcr.io/redhat-developer/podman-desktop-sandbox-ext:latest` or it can be installed from Settings -> Extensions or Dashboard
     * requires podman to be running as it pulls the image from container registry
+    * Podman not required starting 1.0.0
 3. Verify that Red Hat OpenShift Sandbox extension is present in Dashboard and under Settings -> Resources
 4. Create new sandbox instance (Settings -> Resources -> Developer Sandbox -> Create new)
 5. Login to the sandbox account and copy login command (as advised)
@@ -17,6 +18,8 @@
 9. Check kube context from System tray icon (`my-sandbox`)
 
 ## Using Red Hat OpenShift Sandbox and deploying an Nginx application
+
+General guide for simple app. deployment to verify extension's functionality can be found [here](https://github.com/odockal/podman-desktop-qe/docs/scenarios/suites/)
 
 We want to deploy an application (`nginx`) to our Red Hat OpenShift Sandbox.
 

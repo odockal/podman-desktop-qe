@@ -165,6 +165,8 @@ We were able to create a local kubernetes cluster using kind with specific confi
 
 ## Podman Desktop Kind integration
 
+General guide for simple app. deployment to verify extension's functionality can be found [here](https://github.com/odockal/podman-desktop-qe/docs/scenarios/suites/)
+
 Let's see how can we make use of Podman Desktop to onboard kind worflows on multiple OSes.
 
 We have two options here in order to make sure our kubernetes containers are available from our host:
@@ -289,6 +291,9 @@ See [known issues](#known-issues).
     * Try to create new Kind cluster -> It should succeed but the [kind cluster will not be visible in Resources](https://github.com/containers/podman-desktop/issues/2080)
     * Possible workaround could be to instead choosing root connection, one can set actual podman machine (`podman-machine-default`) to be rootful: `podman machine set --rootful`
     * Restart podman machine and try to create Kind cluster -> Now it should work
+* Deployed application is not accessible, logs show "too many open files" (Ie. httpd or nginx apps)
+    * [Pod errors on kind due to Too many open files](https://kind.sigs.k8s.io/docs/user/known-issues/#pod-errors-due-to-too-many-open-files)
+
 ## Resources
 * [Kind docs](https://kind.sigs.k8s.io/docs/user/quick-start/)
 * [Super easy kind+kubernetes deployment+service with port mappings](https://kind.sigs.k8s.io/docs/user/using-wsl2/#accessing-a-kubernetes-service-running-in-wsl2)
