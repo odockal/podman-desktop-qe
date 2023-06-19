@@ -14,6 +14,7 @@ EVENTS=("System ready. Loading extensions"
 "Autostarting container engine"
 "PluginSystem: received dom-ready event from the UI"
 "Delayed startup"
+"Fetched https://registry.podman-desktop.io/api/extensions.json"
 "Stopped all extensions")
 
 # Extensions that are laoded by default in main app - expecting to see multuiple events from extension lifecycle
@@ -33,8 +34,8 @@ verify_function() {
 verify_extension() {
     extension=$1
     echo "Verifying $1 extension"
-    verify_function "Activating extension (${extension})"
-    verify_function "Activation extension (${extension}) ended"
+    verify_function "Activating extension (podman-desktop.${extension})"
+    verify_function "Activation extension (podman-desktop.${extension}) ended"
     verify_function "stopping ${extension} extension"
 }
 
