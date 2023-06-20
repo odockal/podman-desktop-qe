@@ -3,7 +3,8 @@
 Aim is to verify that compose (docker/podman) tool can be installed using Podman Desktop. Podman Desktop also must "see" these objects that `compose up` command spinned up. 
 
 ## Requirements
-One could also have docker/podman compose binary tool downloaded beforehand. Then it should not be offered by Podman Desktop to install the tool.
+1. Podman installed
+2. One could also have docker/podman compose binary tool downloaded beforehand. Then it should not be offered by Podman Desktop to install the tool.
 
 ## Scenario
 

@@ -22,13 +22,13 @@
 
 1. Create containerfile with the content:
 ```sh
-FROM quay.io/centos7/httpd-24/centos7
+FROM quay.io/centos7/httpd-24-centos7
 ```
 2. Build an image from containerfile, name it, ie. `httpd-local`
 
 ### Start the container and podify workflow
 
-1. Start the container from an image - keep port 80:9000 mapping (8080:8080)
+1. Start the container from an image - keep port 80:9000 (`nginx`) for port mapping (8080:8080 for `httpd`)
 2. Check container is running, `localhost:9000 (8080)`, log shows right output, terminal is available, kube is present, open in browser.
 3. Mark container and create a pod
 4. Check Pod is running, former container is stopped, there is new containers group with label `pod` present 
