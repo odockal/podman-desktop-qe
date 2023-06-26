@@ -20,11 +20,13 @@
 
 ## Build an image from containerfile
 
-1. Create containerfile with the content:
+1. Create containerfile, ie. `httpd-24-local.yaml` with the content:
 ```sh
 FROM quay.io/centos7/httpd-24-centos7
 ```
-2. Build an image from containerfile, name it, ie. `httpd-local`
+2. Build an image from containerfile, name it, ie. `httpd-local`, use the file created `httpd-24-local.yaml`
+3. Verify that image was created and container could be created from it
+* Later, when using locally built image, it needs to be pushed to the cluster in order to be available in the particular provider
 
 ### Start the container and podify workflow
 
