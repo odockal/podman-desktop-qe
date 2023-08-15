@@ -266,8 +266,8 @@ See [known issues](#known-issues).
     ```yaml
     apiVersion: v1
     kind: Pod
-      metadata:
-        name: httpd-verification
+    metadata:
+      name: httpd-verification
     spec:
       containers:
       - name: httpd
