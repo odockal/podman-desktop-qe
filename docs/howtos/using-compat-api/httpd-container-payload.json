@@ -1,0 +1,18 @@
+{
+  "Image": "docker.io/library/httpd",
+  "Names": ["httpd-from-api"],
+  "Tty": true,
+  "AttachStdin": false,
+  "AttachStdout": true,
+  "AttachStderr": true,
+  "HostConfig": {
+    "PortBindings": {
+      "80/tcp": [
+        {
+          "HostPort": "8080"
+        }
+      ]
+    }
+  }
+}
+

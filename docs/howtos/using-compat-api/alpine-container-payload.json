@@ -1,0 +1,12 @@
+{
+  "Image": "docker.io/library/alpine",
+  "Names": ["my-alpine"],
+  "Tty": true,
+  "AttachStdin": false,
+  "AttachStdout": true,
+  "AttachStderr": true,
+  "ExposedPorts": {
+    "80/tcp": {}
+  }
+}
+
