@@ -15,7 +15,7 @@ spec:
   containers:
   - args:
     - /usr/bin/run-httpd
-    image: quay.io/centos7/httpd-24-centos7:latest
+    image: registry.access.redhat.com/ubi8/httpd-24:latest
     name: httpd
     ports:
     - containerPort: 8080
