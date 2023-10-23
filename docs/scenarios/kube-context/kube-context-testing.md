@@ -10,7 +10,7 @@ General guide for simple app. deployment to verify extension's functionality can
 ## Instalation and kube context
 1. Start up podman desktop
 2. Podman machine is initialized and running
-3. Pull an image of `quay.io/centos7/httpd-24-centos7`
+3. Pull an image of `quay.io/ubi8/httpd-24`
 5. Start the container from an image - keep port 8080:8080 for `httpd`
 6. Check container is running, `localhost:8080`, log shows right output, terminal is available, kube is present, open in browser.
 7. Mark container and create a pod
