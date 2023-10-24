@@ -1,34 +1,9 @@
 # Basic suite to be tested in various scenarios
 
-## Pull image from unauthenticated source
+## Get an image
+You can use some of the images available through [images scenario](https://github.com/odockal/podman-desktop-qe/blob/main/docs/scenarios/suites/images.md#example-images-for-various-purposes).
 
-### NGINX
-
-1. Pull an image: `docker.io/library/nginx:latest`
-
-### HTTPD
-
-1. Pull an image: `quay.io/centos7/httpd-24-centos7:latest`
-
-## Pull image from authenticated source
-
-### UBI8/HTTPD-24
-1. You need to login to the registry from where you want to pull authenticated image
-2. Add new `registry.redhat.io` and login
-3. Pull an image: `registry.redhat.io/ubi8/httpd-24` 
-* Unauthenticated version can be obtained here: `registry.access.redhat.com/ubi8/httpd-24`
-
-## Build an image from containerfile
-
-1. Create containerfile, ie. `httpd-24-local.yaml` with the content:
-```sh
-FROM quay.io/centos7/httpd-24-centos7
-```
-2. Build an image from containerfile, name it, ie. `httpd-local`, use the file created `httpd-24-local.yaml`
-3. Verify that image was created and container could be created from it
-* Later, when using locally built image, it needs to be pushed to the cluster in order to be available in the particular provider
-
-### Start the container and podify workflow
+### Start the container and test podify workflow (nginx, httpd)
 
 1. Start the container from an image - keep port 80:9000 (`nginx`) for port mapping (8080:8080 for `httpd`)
 2. Check container is running, `localhost:9000 (8080)`, log shows right output, terminal is available, kube is present, open in browser.
@@ -58,9 +33,9 @@ FROM quay.io/centos7/httpd-24-centos7
 
 ### Play Kubernetes YAML with Podman engine or onto Kubernetes cluster
 
-1. Create a kubernetes file (yaml)
-2. Pull `httpd` image, start container and go to the `kube` tab, or call `generate kube`
-3. Create a file with this content (`httpd-pod.yaml`)
+1. Create a kubernetes file (yaml) or use any existing [kubernetes manifest](https://github.com/odockal/podman-desktop-qe/tree/main/examples/manifests)
+2. Pull `httpd` image, start container and go to the `kube` tab, or call `generate kube` 
+3. Create a file with this content (`httpd-pod.yaml`) 
 4. go to the Containers and press `Play Kubernetes YAML`
 5. Choose yaml file
 6. Pick up runtime (`Podman`, `Using Kubernetes cluster`)

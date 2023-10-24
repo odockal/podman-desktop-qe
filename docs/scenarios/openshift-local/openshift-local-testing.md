@@ -31,7 +31,7 @@
 
 
 
-## Using OpenShift Local Openshift Preset and deploying an Nginx application
+## Using OpenShift Local Openshift Preset and deploying the Nginx application
 
 General guide for simple app. deployment to verify extension's functionality can be found [here](https://github.com/odockal/podman-desktop-qe/docs/scenarios/suites/)
 
@@ -46,6 +46,24 @@ We want to deploy an application (`nginx`) to our local openshift. We will use O
 7. Stop the container
 8. Deploy container to kubernetes (Make sure that you picked up `crc-admin` context)
 9. Make sure to toggle `Use kubernetes services` and `Create Openshift routes` and deploy the pod
+10. Verify that pod was sucessfully created (`Pod is Running`) and is reachable via the link provided on `Deploy generated pod to Kubernetes`
+11. Stop and Delete the pod
+
+## Using OpenShift Local Microshift Preset and deploying the Nginx application
+
+General guide for simple app. deployment to verify extension's functionality can be found [here](https://github.com/odockal/podman-desktop-qe/docs/scenarios/suites/)
+
+We want to deploy an application (`httpd-24`) to our local openshift. We will use OpenShift local openshift preset, which will create a openshift local cluster that we can use.
+
+1. Start OpenShift local with `microshift` preset, requires 4 GB of Memory, 2 CPUs and around 31 GB of disc space.
+2. Start the OpenShift local provider (takes a couple of minutes)
+3. Choose `crc-admin` kube context once the cluster is up on podman desktop system tray
+4. Pull `registry.access.redhat.com/ubi8/httpd-24` image
+5. Start a container from the image
+6. Verify that container is running (containers page and localhost:8080)
+7. Stop the container
+8. Deploy container or a pod (if you created a pod from the container) to kubernetes (Make sure that you picked up `crc-admin` context)
+9. Make sure to toggle `Use kubernetes services` and `Create Openshift routes` and deploy the pod (you might need to toggle `Update Kubernetes manifest to respect the Pod security resticred profile.`) if the port the app is exposing is < 1000.
 10. Verify that pod was sucessfully created (`Pod is Running`) and is reachable via the link provided on `Deploy generated pod to Kubernetes`
 11. Stop and Delete the pod
 
