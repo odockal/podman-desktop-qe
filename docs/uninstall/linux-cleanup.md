@@ -1,13 +1,13 @@
-# Uninstall Podman desktop, kind and Podman on Linux (Fedora)
+# Uninstall Podman desktop, kind, compose and Podman on Linux (Fedora)
 
-## Kind clean up
+## Kind/compose/podman binary clean up
 1. Clean up running containers and pulled images - in case of kind, one can use UI to delete kind cluster, or run `kind delete clusters --all`
 2. Depending on what we tweaked along the way, we need to revert (/docs/scenarios/kind/kind-testing-scenarios.md)
 * setting up kind to be run as rootless
 * using rootless or rootful podman on the system
-3. Remove Kind binary
-* System wide installation: `whereis kind` - `rm /usr/bin/kind`
-* Podman Desktop installed binary: `/home/user/.local/share/containers/podman-desktop/extensions-storage/kind`
+3. Remove Kind/Compose/Podman (local) binary
+* System wide installation of binaries, ie.: `whereis kind` - `rm /usr/bin/kind`
+* Podman Desktop installed binaries and plugins: `/home/user/.local/share/containers/podman-desktop/extensions-storage/podman-desktop.*`
 
 ## Podman uninstallation
 1. The question is once the podman is built-in package of Fedora distro, if we want to remove it from the system
