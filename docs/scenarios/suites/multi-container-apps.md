@@ -18,7 +18,7 @@ We will be using [podman-primary-demo](https://github.com/redhat-developer/podma
 
 1. Either pull backend and front end images or build them locally
     * Building images locally from containerfiles: [backend](https://github.com/redhat-developer/podman-desktop-demo/blob/main/primary-podify-demo/backend/Dockerfile), [frontend](https://github.com/redhat-developer/podman-desktop-demo/blob/main/primary-podify-demo/front/Dockerfile)
-    * Pull images: `quay.io/podman-desktop-demo/podify-demo-backend` and `quay.io/podman-desktop-demo/podify-demo-frontend`
+    * Pull images: `quay.io/podman-desktop-demo/podify-demo-backend:v1` and `quay.io/podman-desktop-demo/podify-demo-frontend:v1`
 2. Run the backend image - start a container named `backend` and provide a port mapping `6379:6379`
 3. Get `backend` container's internal IP address - open `backend` container, go to Inspect tab and find "NetworkSettings.IPAddress" value, let's say `$redis.ip`
 4. Run the frontend image - start a container named `frontend`
