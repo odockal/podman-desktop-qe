@@ -30,7 +30,7 @@
 ## Pull image from authenticated source
 
 ### Ie.: UBI8/HTTPD-24
-0. Try to pull an image from authenticated source (ie. `registry.access.redhat.com/ubi8/httpd-24`) - Pulling should fail! Error HTTP code 500
+0. Try to pull an image from authenticated source (ie. `registry.redhat.io/ubi8/httpd-24`) - Pulling should fail! Error HTTP code 500
 1. You need to login to the registry from where you want to pull authenticated image, ie. `registry.redhat.io`
 2. Add new `registry.redhat.io` and login
 3. Pull an image: `registry.redhat.io/ubi8/httpd-24` 
