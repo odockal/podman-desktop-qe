@@ -1,18 +1,6 @@
-# Advanced suite to be tested in various scenarios (Redis + python frontend)
+# Advanced suite to be tested in various scenarios (Primary podify demo)
 
-## Create a python frontend app with redis backend (official redis + demo frontend)
-
-1. Pull `quay.io/centos7/redis-5-centos7`
-2. Start a container named `redis`
-3. Pull `quay.io/slemeur/python-app` or build an image from containerfile (`github.com/redhat-developer/podman-desktop-demo/primary-podify-demo/front/Dockerfile`)
-4. Get `redis` container's internal IP address - Inspect and find "NetworkSettings.IPAddress" value, let's say `$redis.ip`
-5. Start container from python-app
-    * Name it `my-python-app:1.0`
-    * Mapping port 5000 to local port 5000
-    * Networking: Add extra host: `redis`: `$redis.ip`
-6. Right now, application should be running on `localhost:5000` - counter for get requests
-
-## Create a a demo application with demo backend and frontend
+## Create a demo application with primary podify demo backend and frontend
 
 We will be using [podman-primary-demo](https://github.com/redhat-developer/podman-desktop-demo/blob/main/primary-podify-demo/README.md) example to verify multicontainer application execution
 
