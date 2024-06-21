@@ -5,9 +5,9 @@
 
 ## Instalation and starting up of BootC extension
 
-1. Open Podman Desktop Settings -> Extensions
-2. Install a new extension from OCI Image -> `ghcr.io/containers/podman-desktop-extension-bootc`
-3. Verify that bootc extension is present under Settings -> Resources
+1. Open Podman Desktop Extensions -> Catalog
+2. Install Custom... -> `ghcr.io/containers/podman-desktop-extension-bootc`
+3. Verify that bootc extension is present under Extensions -> Installed
 
 ## Using bootc extension to create a bootable image
 
