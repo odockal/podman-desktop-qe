@@ -11,8 +11,8 @@
 
 ## Using bootc extension to create a bootable image
 
-1. Go to Images menu and pull: `quay.io/centos-bootc/fedora-bootc:eln`
-    Note: Currently only `quay.io/centos-bootc/fedora-bootc:eln` is supported.
+1. Go to Images menu and pull: `quay.io/centos-bootc/centos-bootc:stream9`
+    Note: Currently only `quay.io/centos-bootc/centos-bootc:stream9` is supported.
 2. From the action menu select `Build Disk Image` option.
 3. From the drop down menu select the build image type. Types available are `QCOW2`, `AMI`, `RAW` and `ISO`.
 4. From the drop down menu select the architecture type. Architecture types available are `ARM64` and `AMD64`.
