@@ -20,7 +20,7 @@ This scenario verifies the functionality of editing Kubernetes deployment resour
 
 4. **Apply a Deployment YAML**  
    Apply a deployment using the following YAML file:  
-   [test-deployment-resource.yaml](https://github.com/odockal/podman-desktop-qe/blob/b61b9ebf948e7770c240c2f809f7bbd0dab8a51b/docs/scenarios/kubernetes/resources/test-deployment-resource.yaml)
+   [test-deployment-resource.yaml](https://github.com/odockal/podman-desktop-qe/blob/main/docs/scenarios/kubernetes/resources/test-deployment-resource.yaml)
 
 5. **Check Deployment State**  
    - Initially, the deployment will be in a **Stopped** state because it waits until all replicas are active.  
