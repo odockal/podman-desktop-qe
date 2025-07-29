@@ -9,7 +9,7 @@ Version of the extension used for the purposes of this document: `0.4.0`.
 ### Attempt to create Microshift cluster
 _Requirement: Have a rootless Podman machine running._
 
-Microshift clusters can only be created through MINC extension using a rootful Podman machine. If you are using a rotless machine it is expected to run into an error. In order to check this behavior:
+Microshift clusters can only be created through MINC extension using a rootful Podman machine. If you are using a rootless machine it is expected to run into an error. In order to check this behavior:
 - Go to **Settings/Resources**, click on the **Create new...** button
 - If you don't have minc installed:
     - Leave default settings
