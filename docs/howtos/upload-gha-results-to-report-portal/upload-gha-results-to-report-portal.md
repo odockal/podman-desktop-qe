@@ -45,7 +45,7 @@ spec:
         - name: gosmeeclient-container
           image: ghcr.io/chmouel/gosmee:latest
           imagePullPolicy: IfNotPresent
-          args: ["client", "https://hook.pipelinesascode.com/sVHMVcenlmCs", "http://el-github-listener.pac.svc.cluster.local:8080"]
+          args: ["client", "<SOURCE_URL>", "<DESTINATION_URL>"]
 
 ---
 
@@ -168,7 +168,7 @@ spec:
         - name: workflow-run-url
           value: $(tt.params.workflow-run-url)
         - name: pipelinerun-url
-          value: 'https://console-openshift-console.apps.gpc.ocp-hub.prod.psi.redhat.com/k8s/ns/$(context.pipelineRun.namespace)/tekton.dev~v1~PipelineRun/$(context.pipelineRun.name)'
+          value: '<PIPELINE RUN URL>'
         - name: qe-workspace-subpath
           value: $(tt.params.qe-workspace-subpath)
         workspaces:
