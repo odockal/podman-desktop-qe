@@ -146,10 +146,10 @@ spec:
     - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
       metadata:
-        generateName: upload-gha-results-v2-amisskii-
+        generateName:pde2e-gha-workflow-results-upload-
       spec:
         pipelineRef:
-          name: pde2e-gha-results-upload
+          name: pde2e-gha-workflow-results-upload
         params:
         - name: workflow-name
           value: $(tt.params.workflow-name)
@@ -171,14 +171,4 @@ spec:
           value: '<PIPELINE RUN URL>'
         - name: qe-workspace-subpath
           value: $(tt.params.qe-workspace-subpath)
-        workspaces:
-        - name: pipelines-data
-          persistentVolumeClaim:
-            claimName: pipelines-data
-        - name: reportportal-credentials
-          secret:
-            secretName: reportportal-pd
-        - name: github-actions-credentials
-          secret:
-            secretName: github-podmandesktop-ci-bot-actions-token
         timeout: "30m"
