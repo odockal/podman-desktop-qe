@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  web:
+    image: httpd:latest
+    container_name: httpd-container
+    ports:
+      - "8080:8080"
+    restart: always
+    logging:
+      driver: 'json-file'
+      options:
+        tag: '{{.Name}}#{{.ID}}#{{.ImageName}}'
