@@ -16,8 +16,16 @@
 #  * SPDX-License-Identifier: Apache-2.0
 #  ***********************************************************************/
 
-FROM alpine:latest
+FROM alpine:latest as first
 RUN echo $PATH
+
+FROM first as second
+RUN echo second
+
+FROM second as third
+RUN echo third
+
+FROM third
 COPY echo_and_run.sh /usr/bin/
 RUN chmod +x /usr/bin/echo_and_run.sh
 RUN ls -al /usr/bin/echo_and_run.sh
