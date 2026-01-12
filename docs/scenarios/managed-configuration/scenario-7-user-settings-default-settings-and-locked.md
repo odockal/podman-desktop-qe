@@ -1,6 +1,6 @@
 # Testing scenarios for Managed Configuration (user-defined settings.json, managed default-settings.json and locked.json)
 
-## Prerequisities
+## Prerequisites
 1. Podman installed
 2. Podman Desktop is installed and not running
 3. Prepare contents of `User Settings (settings.json)` with a custom value (e.g.: `"preferences.appearance": "light"`)
