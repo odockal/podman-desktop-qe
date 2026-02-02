@@ -6,13 +6,20 @@
 3. Finish onboarding where required by the individual test
 4. Delete or prepare configuration files as needed for the scenario:
   * User Configuration Files
-    - Linux/Mac: `~/.local/share/containers/podman-desktop/configuration/settings.json`
-    - Windows: `%USERPROFILE%\.local\share\containers\podman-desktop\configuration\settings.json`
+
+    Usually the path for configuration file is defined in product.json: "paths"."config", ie:
+    * linux binary or mac: `~/.config/containers/podman-desktop/configuration/settings.json`
+    * linux flatpak `~/.var/app/io.podman_desktop/PodmanDesktop/config/containers/podman-desktop/configuration/settings.json`
+    * windows: `%USERPROFILE%\.local\share\containers\podman-desktop\configuration\settings.json`
   * Managed Configuration Default Settings
+
+    Usually the path for configuration file is defined in product.json: "paths"."managed", ie:
     - Linux: `/usr/share/podman-desktop/default-settings.json`
     - Mac: `/Library/Application Support/io.podman_desktop.PodmanDesktop/default-settings.json`
     - Windows: `%PROGRAMDATA%\Podman Desktop\default-settings.json`
   * Locked Settings
+
+    Usually the path for configuration file is defined in product.json: "paths"."managed", ie:
     - Linux: `/usr/share/podman-desktop/locked.json`
     - Mac: `/Library/Application Support/io.podman_desktop.PodmanDesktop/locked.json`
     - Windows: `%PROGRAMDATA%\Podman Desktop\locked.json`
@@ -24,7 +31,7 @@ Create the following files on the test machine before starting Podman Desktop. T
 ```
 {
   "preferences.appearance": "system",
-  "telemetry.enabled": false,
+  "feedback.dialog": false,
   "tasks.Toast": true
 }
 ```
@@ -32,7 +39,7 @@ Create the following files on the test machine before starting Podman Desktop. T
 - `Managed default settings` (`default-settings.json`):
 ```
 {
-  "telemetry.enabled": true,
+  "feedback.dialog": true,
   "preferences.zoomLevel": 0.5,
   "preferences.ExitOnClose": false
 }
