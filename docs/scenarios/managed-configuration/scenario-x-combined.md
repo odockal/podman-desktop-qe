@@ -42,7 +42,7 @@ Create the following files on the test machine before starting Podman Desktop. T
 ```
 {
   "locked": [
-    "editor.fontSize",
+    "terminal.integrated.lineHeight",
     "tasks.Toast",
     "preferences.ExitOnClose"
   ]
@@ -80,12 +80,12 @@ Create the following files on the test machine before starting Podman Desktop. T
   2. Attempt to toggle the value in UI → verify the UI rejects the change or if the control toggles, confirm `settings.json` still contains `"tasks.Toast": true` (no persistent change).
   3. Use the preference Reset action → verify no effect and `settings.json` still contains `"tasks.Toast": true` (value remains enforced by `locked.json`).
 
-8. Property: `editor.fontSize` (locked-only)
+8. Property: `terminal.integrated.lineHeight` (locked-only)
 - Expectation: This key is only present in `locked.json` (no user or default). The UI should show a `Managed` label and not allow a persistent override; behavior may be undefined depending on product implementation.
 - Steps:
-  1. Verify `locked.json` lists `"editor.fontSize"` and neither `settings.json` nor `default-settings.json` contain `"editor.fontSize"` (confirm `settings.json` does not contain the key).
-  2. Confirm the UI shows `editor.fontSize` with a `Managed` or `Locked` indicator.
-  3. Attempt to change the editor font size in the UI; verify the change is rejected or not persisted and that `settings.json` still does not contain `"editor.fontSize"`.
+  1. Verify `locked.json` lists `"terminal.integrated.lineHeight"` and neither `settings.json` nor `default-settings.json` contain `"terminal.integrated.lineHeight"` (confirm `settings.json` does not contain the key).
+  2. Confirm the UI shows `terminal.integrated.lineHeight` with a `Managed` or `Locked` indicator.
+  3. Attempt to change the editor font size in the UI; verify the change is rejected or not persisted and that `settings.json` still does not contain `"terminal.integrated.lineHeight"`.
   4. Use the preference Reset action (if present) and verify there is no effect and `settings.json` remains without the key.
 
 9. Property: `preferences.zoomLevel` (managed default only)
