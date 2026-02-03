@@ -1,6 +1,6 @@
 # Testing scenarios for Managed Configuration (no configuration files)
 
-## Prerequisities
+## Prerequisites
 1. Podman installed
 2. Podman Desktop is installed and not running
 3. Delete configuration files:
