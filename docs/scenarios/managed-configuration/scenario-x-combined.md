@@ -72,13 +72,13 @@ Create the following files on the test machine before starting Podman Desktop. T
   2. Change appearance in UI to `dark` → verify `settings.json` updated to `"preferences.appearance": "dark"`.
   3. Use the preference Reset action → verify `preferences.appearance` is removed from `settings.json` and the UI shows `system` (effective value from defaults/app).
 
-6. Property: `telemetry.enabled` (user + default)
+6. Property: `feedback.dialog` (user + default)
 - Expectation: user `false` overrides managed default `true` initially.
 - Steps:
-  1. Verify `settings.json` contains `"telemetry.enabled": false` and `default-settings.json` contains `"telemetry.enabled": true`.
-  2. Confirm UI shows telemetry disabled.
-  3. Toggle telemetry on in UI → verify `settings.json` updated to `true` and the UI shows telemetry enabled.
-  4. Use the preference Reset action → verify the user-level override is removed (confirm `settings.json` no longer contains `"telemetry.enabled"`) and the effective value returns to the managed default `true` (confirm `default-settings.json` still contains `"telemetry.enabled": true`).
+  1. Verify `settings.json` contains `"feedback.dialog": false` and `default-settings.json` contains `"feedback.dialog": true`.
+  2. Confirm UI shows feedback dialog disabled.
+  3. Toggle feedback dialog on in UI → verify `settings.json` updated to `true` and the UI shows feedback dialog enabled.
+  4. Use the preference Reset action → verify the user-level override is removed (confirm `settings.json` no longer contains `"feedback.dialog"`) and the effective value returns to the managed default `true` (confirm `default-settings.json` still contains `"feedback.dialog": true`).
 
 7. Property: `tasks.Toast` (user + locked)
 - Expectation: Key is present in `settings.json` and also listed in `locked.json`; UI may show a Managed label and should not allow persistent changes.
