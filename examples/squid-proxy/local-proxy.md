@@ -1,6 +1,6 @@
 # Podman Desktop proxy setup with simple local Squid Proxy running in container
 
-## Setup Squid running in container
+## Setup Squid running in container - simple, open to all
 
 1. Create a squid config on local file system, `squid.conf`:
 ```
@@ -17,10 +17,52 @@ access_log daemon:/var/log/squid/access.log squid
 
 2. Start up the squid container:
 ```
-podman run -d -p 3128:3128 --name squid-proxy -v ./squid.conf:/etc/squid/squid.conf:Z docker.io/ubuntu/squid:latest
+podman run -d -p 3128:3128 --name squid-proxy -v ./squid-basic.conf:/etc/squid/squid.conf:Z docker.io/ubuntu/squid:latest
 ```
 
-3. Open another terminal window and monitor the squid log
+## Setup squid running in a container with access allowed only from local network
+
+1. Create a `squid-local.conf`
+```
+# 1. Define the port Squid listens on
+http_port 3128
+
+# 2. Define standard local private networks (covers Docker, CI runners, and LANs)
+acl localnet src 10.0.0.0/8      # RFC 1918 private cloud/LAN
+acl localnet src 172.16.0.0/12    # RFC 1918 private cloud/LAN (Typical Docker range)
+acl localnet src 192.168.0.0/16  # RFC 1918 home/office LAN
+acl localnet src fc00::/7        # IPv6 unique local addresses
+acl localnet src fe80::/10       # IPv6 link-local addresses
+
+# 3. Define allowed ports and methods
+acl SSL_ports port 443
+acl Safe_ports port 80          # HTTP
+acl Safe_ports port 443         # HTTPS
+acl CONNECT method CONNECT
+
+# 4. Traffic Protection Rules
+# Drop traffic attempting to access non-standard ports
+http_access deny !Safe_ports
+
+# Only allow the CONNECT method for actual SSL/HTTPS ports
+http_access deny CONNECT !SSL_ports
+
+# 5. Access Control Rules (Evaluated top-down)
+http_access allow localhost
+http_access allow localnet
+
+# Catch-all: Deny anything else (stops your proxy from being an open internet proxy)
+http_access deny all
+```
+
+2. Start up the squid container:
+```
+podman run -d -p 3128:3128 --name squid-proxy -v ./squid-local.conf:/etc/squid/squid.conf:Z docker.io/ubuntu/squid:latest
+```
+
+### Verification of the proxy setup
+
+1. Open another terminal window and monitor the squid log
 ```
 podman logs -f squid-proxy # container log
 # or
