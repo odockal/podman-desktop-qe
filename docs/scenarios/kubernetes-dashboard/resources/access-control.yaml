@@ -1,0 +1,81 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: test-sa
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: test-role
+  namespace: default
+rules:
+  - apiGroups: ['']
+    resources: ['pods']
+    verbs: ['get', 'list']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: test-rolebinding
+  namespace: default
+subjects:
+  - kind: ServiceAccount
+    name: test-sa
+    namespace: default
+roleRef:
+  kind: Role
+  name: test-role
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: test-clusterrole
+rules:
+  - apiGroups: ['']
+    resources: ['nodes']
+    verbs: ['get', 'list']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: test-clusterrolebinding
+subjects:
+  - kind: ServiceAccount
+    name: test-sa
+    namespace: default
+roleRef:
+  kind: ClusterRole
+  name: test-clusterrole
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: test-quota
+  namespace: default
+spec:
+  hard:
+    pods: '10'
+    requests.cpu: '2'
+    limits.cpu: '4'
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: test-endpointslice
+  namespace: default
+  labels:
+    kubernetes.io/service-name: svc1-clusterip
+addressType: IPv4
+ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+endpoints:
+  - addresses:
+      - 10.0.0.1
+    conditions:
+      ready: true
