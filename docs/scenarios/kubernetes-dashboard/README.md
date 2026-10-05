@@ -6,12 +6,12 @@ This directory contains manual test scenario docs for the Kubernetes Dashboard P
 
 YAML fixtures used across scenarios are in the [`resources/`](resources/) subdirectory:
 
-| File | Contents | Used In |
+| File | Contents and exact object names | Used In |
 |------|----------|---------|
-| [cluster-resources.yaml](resources/cluster-resources.yaml) | Deployments, Pods, Services, Ingress, PVC, ConfigMap, Secrets, Job, CronJob, DaemonSets, ReplicaSets, PV, StorageClass, Endpoints, NetworkPolicy, IngressClass, GatewayClass, Gateway, HTTPRoute | WF-02, WF-03, WF-07, WF-08, WF-09 |
-| [access-control.yaml](resources/access-control.yaml) | ServiceAccount, Role, RoleBinding, ClusterRole, ClusterRoleBinding, ResourceQuota, EndpointSlice | WF-07, WF-10, WF-11 |
-| [pr-tests.yaml](resources/pr-tests.yaml) | LimitRange, HPA, PDB, PriorityClass, RuntimeClass, Lease, MutatingWebhookConfig, web Deployment (nginx) | WF-11, WF-12 |
-| [pr-1226-validating-webhook.yaml](resources/pr-1226-validating-webhook.yaml) | ValidatingWebhookConfiguration | WF-12 |
+| [cluster-resources.yaml](resources/cluster-resources.yaml) | `deploy1`, `deploy2`, `deploy3`; `pod1`, `pod2`, `pod3`; `svc1-clusterip`–`svc4-nodeport`; `ingress1`; `pvc1`; `configmap1`; `secret1-generic`–`secret3-tls`; `job1`; `cronjob1`; `daemonset1`, `daemonset2`; `replicaset1`, `replicaset2`; `pv1`; `storage-class1`; `endpoint1`; `network-policy1`; `ingress-class1`; `gateway-class1`; `gateway1`; `httproute1` | WF-02, WF-03, WF-07, WF-08, WF-09 |
+| [access-control.yaml](resources/access-control.yaml) | `test-sa`, `test-role`, `test-rolebinding`, `test-clusterrole`, `test-clusterrolebinding`, `test-quota`, `test-endpointslice` | WF-07, WF-10, WF-11 |
+| [pr-tests.yaml](resources/pr-tests.yaml) | `web`, `mem-limit`, `web-hpa`, `web-pdb`, `high-priority`, `sample-runc`, `sample-lease`, `sample-mwc` | WF-11, WF-12 |
+| [pr-1226-validating-webhook.yaml](resources/pr-1226-validating-webhook.yaml) | `sample-vwc` ValidatingWebhookConfiguration | WF-12 |
 
 > **Kind cluster note:** `cluster-resources.yaml` contains Node objects designed for the envtest fixture. On Kind, skip applying Node resources — Kind manages its own node(s).
 
@@ -47,4 +47,4 @@ The following fixtures and runbook were used to verify the workflows against a c
 | [v06-storage-pvc.yaml](resources/v06-storage-pvc.yaml) | Separate PVC binding step |
 | [v06-access-control.yaml](resources/v06-access-control.yaml) | ServiceAccount, Role, RoleBinding, ClusterRole, and ClusterRoleBinding |
 
-The current extension places Service Accounts under **Config**, while Roles and RoleBindings are under **Access Control**. HPA live scaling requires metrics-server; webhook admission requires a reachable webhook server; Gateway API requires its CRDs and controller.
+The current extension places Service Accounts under **Config**, while Roles and RoleBindings are under **Access Control**. HPA live scaling requires metrics-server; webhook admission requires a reachable webhook server; Gateway API requires its CRDs and controller. Use the exact names in these tables when following the scenarios; do not substitute names without updating the expected results.
