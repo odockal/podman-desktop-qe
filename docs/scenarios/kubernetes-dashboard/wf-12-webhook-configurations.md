@@ -27,6 +27,16 @@ This workflow verifies the two cluster-scoped webhook configuration pages under 
 
 The URLs use `example.com` and the namespace selector limits them to `default`; they are safe configuration fixtures, not functional admission servers. Mutation or rejection can be tested only after deploying a reachable TLS webhook service and updating `clientConfig` with a valid service reference and CA bundle. Without that prerequisite, the reproducible Dashboard test is list, details, Inspect, and Patch availability.
 
+## Admission behavior (proposed; requires a webhook server)
+
+1. Deploy a test TLS webhook Service with a certificate signed by the CA configured in the MutatingWebhookConfiguration or ValidatingWebhookConfiguration.
+2. Patch the selected configuration so `clientConfig.service`, `caBundle`, rules, and namespace selector point to that test server. Keep the scope limited to a dedicated test namespace.
+3. Apply a uniquely named test Pod in that namespace through **Apply YAML**.
+4. For the mutating webhook, verify the Pod Inspect output contains the expected injected label, annotation, or environment variable.
+5. For the validating webhook, apply a deliberately invalid Pod and verify Apply YAML rejects it; then apply a valid Pod and verify it becomes Running.
+
+**Expected:** the Dashboard shows the resulting admitted or rejected workload state. Do not mark this case passed with the supplied `example.com` fixtures: they intentionally use `failurePolicy: Ignore` and do not contact an admission server.
+
 ## Cleanup
 
 ```sh

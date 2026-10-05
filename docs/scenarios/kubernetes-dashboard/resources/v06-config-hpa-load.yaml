@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qe-v06-hpa-load
+  namespace: qe-v06-workflows
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qe-v06-hpa-load
+  template:
+    metadata:
+      labels:
+        app: qe-v06-hpa-load
+    spec:
+      containers:
+        - name: cpu-load
+          image: busybox:1.36
+          command: ["sh", "-c", "while true; do :; done"]
+          resources:
+            requests:
+              cpu: 100m
+            limits:
+              cpu: 200m
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: qe-v06-hpa-load
+  namespace: qe-v06-workflows
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: qe-v06-hpa-load
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60

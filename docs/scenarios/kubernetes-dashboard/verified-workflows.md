@@ -16,12 +16,17 @@ All verified workflow objects use the `qe-v06-` prefix and the `qe-v06-workflows
 | [v06-config-recovery.yaml](resources/v06-config-recovery.yaml) | Updated Secret `qe-v06-secret` | Adds `RECOVERY_TOKEN=restored`, allowing the existing pending Pod to start |
 | [v06-config-admission.yaml](resources/v06-config-admission.yaml) | Pod `qe-v06-defaulted` | Omits resources so LimitRange admission defaults can be verified in Pod Inspect |
 | [v06-config-quota-exceeded.yaml](resources/v06-config-quota-exceeded.yaml) | Rejected Pod `qe-v06-quota-exceeded` | Requests 3 CPU and limits 5 CPU, exceeding `qe-v06-quota` |
+| [v06-config-quota-usage.yaml](resources/v06-config-quota-usage.yaml) | Pod `qe-v06-quota-usage` | Proposed create/delete check for ResourceQuota `status.used` changes |
+| [v06-config-invalid-token.yaml](resources/v06-config-invalid-token.yaml) and [v06-config-valid-token.yaml](resources/v06-config-valid-token.yaml) | Updated Secret `qe-v06-secret` | Proposed failure/recovery inputs for the Config/Secret consumer |
+| [v06-config-consumer.yaml](resources/v06-config-consumer.yaml) | Recreated Pod `qe-v06-config-consumer` | Proves a recreated consumer accepts only the expected ConfigMap/Secret values |
 | [v06-config-policies.yaml](resources/v06-config-policies.yaml) | Deployment `qe-v06-policy-target`; HPA `qe-v06-hpa`; PDB `qe-v06-pdb`; Lease `qe-v06-lease` | HPA target 80%, min 1/max 3; PDB minAvailable 1; Lease holder `qe-v06-holder`, duration 30s |
+| [v06-config-hpa-load.yaml](resources/v06-config-hpa-load.yaml) | Deployment and HPA `qe-v06-hpa-load` | Proposed live HPA test once metrics-server provides CPU metrics |
 | [v06-config-cluster.yaml](resources/v06-config-cluster.yaml) | PriorityClass `qe-v06-priority`; RuntimeClass `qe-v06-runtime`; consumer Pods | Priority value 1000000; runtime handler `runc`; Pods prove both classes are usable |
 | [v06-config-webhooks.yaml](resources/v06-config-webhooks.yaml) | MutatingWebhookConfiguration `qe-v06-mutating-webhook`; ValidatingWebhookConfiguration `qe-v06-validating-webhook` | Each has one `CREATE pods` rule and Failure Policy `Ignore`; configuration-only because no admission server is deployed |
 | [v06-storage.yaml](resources/v06-storage.yaml) | PersistentVolume `qe-v06-pv`; StorageClass `qe-v06-manual` | PV is 1Gi, `ReadWriteOnce`, `Retain`; StorageClass uses `kubernetes.io/no-provisioner` |
 | [v06-storage-pvc.yaml](resources/v06-storage-pvc.yaml) | PersistentVolumeClaim `qe-v06-claim` | Requests 500Mi and explicitly binds to `qe-v06-pv` |
 | [v06-access-control.yaml](resources/v06-access-control.yaml) | ServiceAccount `qe-v06-reader`; Role and RoleBinding `qe-v06-reader`; ClusterRole and ClusterRoleBinding `qe-v06-node-reader` | Namespaced role allows Pod `get/list`; cluster role allows Node `get/list` |
+| [v06-config-rbac-check.yaml](resources/v06-config-rbac-check.yaml) | Pod `qe-v06-rbac-check` | Proposed in-cluster token test: Pods allowed, ConfigMaps denied |
 
 When creating an additional ad-hoc object through **Apply YAML**, use a deterministic name such as `test-deployment`, keep it in `qe-v06-workflows`, and remove it before cleanup. Do not reuse the canonical fixture names during an Apply YAML test.
 
@@ -106,6 +111,18 @@ Detailed app-only steps are in [WF-11: Configuration & Policies](wf-11-configura
 9. Verify ServiceAccount `qe-v06-reader` under Config and its binding under Access Control. Permission allow/deny requires a separate token or restricted kubeconfig.
 10. Verify both webhook configuration pages show the canonical fixtures, Webhooks 1, and Failure Policy Ignore. Admission behavior requires a reachable TLS webhook server and is not claimed by this fixture.
 11. Anonymous RBAC requires a restricted kubeconfig and should be tested separately from the workload namespace.
+
+### Proposed functional checks
+
+The following cases are documented for execution, not yet verified results. Use the complete steps and cleanup in [WF-11](wf-11-configuration-policies.md) and [WF-12](wf-12-webhook-configurations.md):
+
+1. Change `API_TOKEN`, recreate `qe-v06-config-consumer`, and verify it fails; restore the token and verify the recreated Pod becomes Running.
+2. Apply then delete `qe-v06-quota-usage` and verify `qe-v06-quota.status.used` moves by one Pod, 100m CPU request, and 200m CPU limit.
+3. Patch `qe-v06-policy-target` from two to one replica and back; verify the PDB status counters follow the workload.
+4. Patch and restore `qe-v06-lease`; verify its list row and Inspect output refresh.
+5. Apply `qe-v06-rbac-check`; verify its logs show `pods=200 configmaps=403`.
+6. With metrics-server installed, apply `qe-v06-hpa-load` and verify replicas increase above one under CPU load.
+7. With a dedicated TLS admission server, verify a mutating webhook changes an admitted Pod and a validating webhook rejects an invalid Pod.
 
 ## Cleanup
 
