@@ -1,64 +1,93 @@
 # WF-11: Configuration & Policies (New in 0.6.0)
 
-This scenario verifies that configuration and policy resources — LimitRanges, ResourceQuotas, HPAs, PodDisruptionBudgets, PriorityClasses, RuntimeClasses, and Leases — are visible in the Dashboard and can be deleted.
+This workflow verifies every non-webhook page under **Config** with deterministic resources and app-visible outcomes. Perform navigation, inspection, patch availability checks, and verification in Podman Desktop. Use **Apply YAML** for setup files.
 
 ## Prerequisites
 
-- Kind cluster running and connected in Podman Desktop.
-- Apply the required resources:
-  ```bash
-  kubectl apply -f resources/pr-tests.yaml
-  kubectl apply -f resources/access-control.yaml
-  ```
-  Resource files:
-  - [pr-tests.yaml](resources/pr-tests.yaml) — provides LimitRange, HPA, PDB, PriorityClass, RuntimeClass, Lease, MutatingWebhookConfig, and a `web` Deployment (nginx, 2 replicas)
-  - [access-control.yaml](resources/access-control.yaml) — provides ResourceQuota `test-quota`
+- A Kind cluster is connected in Podman Desktop.
+- Namespace `qe-v06-workflows` is selected for namespaced pages.
+- Apply these fixtures through **Apply YAML**, in order:
 
-`pr-tests.yaml` includes a `web` Deployment (nginx, 2 replicas) that the HPA and PDB target.
+  1. [v06-config.yaml](resources/v06-config.yaml) — ResourceQuota `qe-v06-quota` and LimitRange `qe-v06-limits`.
+  2. [v06-config-data.yaml](resources/v06-config-data.yaml) — ConfigMap `qe-v06-config`, Secret `qe-v06-secret`, and consumer Pods.
+  3. [v06-config-policies.yaml](resources/v06-config-policies.yaml) — Deployment `qe-v06-policy-target`, HPA `qe-v06-hpa`, PDB `qe-v06-pdb`, and Lease `qe-v06-lease`.
+  4. [v06-config-cluster.yaml](resources/v06-config-cluster.yaml) — PriorityClass `qe-v06-priority`, RuntimeClass `qe-v06-runtime`, and one consumer Pod for each.
+  5. [v06-access-control.yaml](resources/v06-access-control.yaml) — ServiceAccount `qe-v06-reader` and its RBAC resources.
 
-## Scenario Steps
+## ConfigMaps & Secrets
 
-### Quota & Limits
+1. Open **Config → ConfigMaps & Secrets**.
+2. Verify `qe-v06-config` has Type `ConfigMap` and one key. Open it and verify `APP_MODE=dashboard` in Summary.
+3. Verify `qe-v06-secret` has Type `Opaque` and initially one key. Verify the `API_TOKEN` key is present; decoding or displaying its value is not required.
+4. Open **Pods** and verify `qe-v06-config-consumer` is Running. Its readiness proves that both referenced values are available and correct.
+5. Verify `qe-v06-missing-key` is Pending because `RECOVERY_TOKEN` does not exist.
+6. Apply [v06-config-recovery.yaml](resources/v06-config-recovery.yaml) through **Apply YAML**.
 
-1. **Verify ResourceQuota**  
-   Navigate to Resource Quotas and verify `test-quota` shows a Request Count column with constraints. Open the details page.  
-   **Expected:** Hard limits: pods=10, requests.cpu=2, limits.cpu=4.
+**Expected:** the existing `qe-v06-missing-key` Pod becomes Running without recreation, and `qe-v06-secret` now reports two keys.
 
-2. **Verify LimitRange**  
-   Navigate to Limit Ranges and verify `mem-limit` appears with Type=Container, Count=1. Open the details page.  
-   **Expected:** Container default=cpu:200m, defaultRequest=cpu:100m.
+## ResourceQuota & LimitRange
 
-### HPA Observing Live Scaling
+1. Open **Config → Resource Quotas** and verify `qe-v06-quota` is listed.
+2. Open **Inspect** and verify hard limits `pods=10`, `requests.cpu=2`, and `limits.cpu=4`. Summary contains metadata; quota values are verified in Inspect.
+3. Open **Config → Limit Ranges** and verify `qe-v06-limits` has Type `Container` and Count `1`.
+4. Open **Inspect** and verify default request `100m` and default limit `200m`.
+5. Apply [v06-config-admission.yaml](resources/v06-config-admission.yaml). Open Pod `qe-v06-defaulted` and verify it is Running and has QoS `Burstable`.
+6. In the Pod's **Inspect** tab, verify `resources.requests.cpu=100m` and `resources.limits.cpu=200m`.
+7. Apply [v06-config-quota-exceeded.yaml](resources/v06-config-quota-exceeded.yaml).
 
-3. **Verify HPA**  
-   Navigate to Horizontal Pod Autoscalers and verify `web-hpa` shows Min Pods=1, Max Pods=5, Metrics=`cpu/80%`, targeting the `web` Deployment.
+**Expected:** Podman Desktop reports that no resource was applied, and `qe-v06-quota-exceeded` does not appear on the Pods page. The current Apply YAML result does not expose the Kubernetes quota rejection text, so the test asserts rejection and absence rather than an exact error message.
 
-4. **Verify web deployment replica count**  
-   Navigate to Deployments and verify the `web` deployment's replica count reflects HPA decisions (initially 2 since `pr-tests.yaml` sets replicas=2).
+## Horizontal Pod Autoscaler
 
-### PDB
+1. Open **Config → Horizontal Pod Autoscalers**.
+2. Verify `qe-v06-hpa` shows Metrics `cpu: <unknown>/80%`, Min Pods `1`, Max Pods `3`, and Replicas `2` when metrics-server is not installed.
+3. Open details and verify Summary, Inspect, and Patch are available. Use Inspect to verify the target Deployment is `qe-v06-policy-target`.
 
-5. **Verify PodDisruptionBudget**  
-   Navigate to Pod Disruption Budgets and verify `web-pdb` shows Min Available=1 and a populated Current Healthy column. Open the details page.  
-   **Expected:** minAvailable=1, selector app=web.
+**Expected:** configuration visibility passes without metrics-server. Live CPU-driven scaling is tested only when metrics-server is installed; otherwise `<unknown>` is the predictable result and is not a failure.
 
-### Other Resources
+## Pod Disruption Budget
 
-6. **Verify PriorityClass**  
-   Navigate to Priority Classes and verify `high-priority` shows Value=1000000, Global Default=false, Preemption Policy=PreemptLowerPriority.
+1. Open **Config → Pod Disruption Budgets**.
+2. Verify `qe-v06-pdb` shows Min Available `1`, Current Healthy `2`, Desired Healthy `1`, Allowed Disruptions `1`, and Expected Pods `2`.
+3. Open Inspect and verify the selector targets `app=qe-v06-policy-target`.
 
-7. **Verify RuntimeClass**  
-   Navigate to Runtime Classes and verify `sample-runc` shows Handler=runc.
+**Important:** PDBs govern voluntary evictions through the Kubernetes Eviction API. The Dashboard offers **Delete Pod**, not **Evict Pod**; direct deletion bypasses the PDB and must not be used as a PDB enforcement test.
 
-8. **Verify Lease**  
-   Navigate to Leases and verify `sample-lease` shows Holder=`reviewer`, Lease Duration=30s, and a populated Renew Time.
+## Lease
 
-### Delete via Dashboard
+1. Open **Config → Leases**.
+2. Verify `qe-v06-lease` shows Holder `qe-v06-holder`, Lease Duration `30s`, and Renew Time `2026-10-05T12:00:00.000Z`.
+3. Open details and verify Summary, Inspect, and Patch are available. Verify the same spec values in Inspect.
 
-9. **Delete mem-limit via Dashboard**  
-   Use the delete action on `mem-limit` on the Limit Ranges page.  
-   **Expected:** `mem-limit` disappears from Limit Ranges. `test-quota` is still present in Resource Quotas.
+## PriorityClass
 
-10. **Delete test-quota via Dashboard**  
-    Use the delete action on `test-quota` on the Resource Quotas page.  
-    **Expected:** `test-quota` disappears from Resource Quotas.
+1. Open **Config → Priority Classes**. This page is cluster-scoped and does not show a namespace selector.
+2. Verify `qe-v06-priority` shows Value `1000000`, Global Default `false`, and Preemption Policy `PreemptLowerPriority`.
+3. Open **Pods** in `qe-v06-workflows` and verify `qe-v06-priority-pod` is Running.
+4. Open the Pod's Inspect tab and verify `priorityClassName=qe-v06-priority`.
+
+## RuntimeClass
+
+1. Open **Config → Runtime Classes**. This page is cluster-scoped and does not show a namespace selector.
+2. Verify `qe-v06-runtime` shows Handler `runc`.
+3. Open **Pods** in `qe-v06-workflows` and verify `qe-v06-runtime-pod` is Running.
+4. Open the Pod's Inspect tab and verify `runtimeClassName=qe-v06-runtime`.
+
+## ServiceAccount
+
+1. Open **Config → Service Accounts** and verify `qe-v06-reader` is Running with zero Secrets.
+2. Open details and verify Summary, Inspect, and Patch are available.
+3. Open **Access Control → Role Bindings** and verify RoleBinding `qe-v06-reader` references ServiceAccount `qe-v06-reader` and Role `qe-v06-reader`.
+
+**Expected:** the Config page proves the ServiceAccount exists; its permissions are verified through the related Access Control resources. An authorization allow/deny test requires a separate token or restricted kubeconfig and is outside this app-only workflow.
+
+## Cleanup
+
+```sh
+kubectl delete -f resources/v06-config-cluster.yaml --ignore-not-found
+kubectl delete -f resources/v06-config-policies.yaml --ignore-not-found
+kubectl delete -f resources/v06-config-admission.yaml --ignore-not-found
+kubectl delete -f resources/v06-config-data.yaml --ignore-not-found
+kubectl delete -f resources/v06-config.yaml --ignore-not-found
+kubectl delete -f resources/v06-access-control.yaml --ignore-not-found
+```

@@ -12,6 +12,13 @@ All verified workflow objects use the `qe-v06-` prefix and the `qe-v06-workflows
 | [v06-statefulsets.yaml](resources/v06-statefulsets.yaml) | StatefulSet `qe-v06-stateful`; headless Service `qe-v06-stateful`; PVs `qe-v06-stateful-pv-0` and `qe-v06-stateful-pv-1` | Two stable Pods with pre-bound PVCs `qe-v06-stateful-data-qe-v06-stateful-0` and `qe-v06-stateful-data-qe-v06-stateful-1` |
 | [v06-logs.yaml](resources/v06-logs.yaml) | Pod `qe-v06-logs`, container `logger` | Emits `qe-v06-log-line` every second |
 | [v06-config.yaml](resources/v06-config.yaml) | ResourceQuota `qe-v06-quota`; LimitRange `qe-v06-limits` | Quota limits Pods, CPU requests, and CPU limits; LimitRange defaults are 100m request and 200m limit |
+| [v06-config-data.yaml](resources/v06-config-data.yaml) | ConfigMap `qe-v06-config`; Secret `qe-v06-secret`; Pods `qe-v06-config-consumer` and `qe-v06-missing-key` | One Pod proves valid references; the other remains Pending until the missing Secret key is restored |
+| [v06-config-recovery.yaml](resources/v06-config-recovery.yaml) | Updated Secret `qe-v06-secret` | Adds `RECOVERY_TOKEN=restored`, allowing the existing pending Pod to start |
+| [v06-config-admission.yaml](resources/v06-config-admission.yaml) | Pod `qe-v06-defaulted` | Omits resources so LimitRange admission defaults can be verified in Pod Inspect |
+| [v06-config-quota-exceeded.yaml](resources/v06-config-quota-exceeded.yaml) | Rejected Pod `qe-v06-quota-exceeded` | Requests 3 CPU and limits 5 CPU, exceeding `qe-v06-quota` |
+| [v06-config-policies.yaml](resources/v06-config-policies.yaml) | Deployment `qe-v06-policy-target`; HPA `qe-v06-hpa`; PDB `qe-v06-pdb`; Lease `qe-v06-lease` | HPA target 80%, min 1/max 3; PDB minAvailable 1; Lease holder `qe-v06-holder`, duration 30s |
+| [v06-config-cluster.yaml](resources/v06-config-cluster.yaml) | PriorityClass `qe-v06-priority`; RuntimeClass `qe-v06-runtime`; consumer Pods | Priority value 1000000; runtime handler `runc`; Pods prove both classes are usable |
+| [v06-config-webhooks.yaml](resources/v06-config-webhooks.yaml) | MutatingWebhookConfiguration `qe-v06-mutating-webhook`; ValidatingWebhookConfiguration `qe-v06-validating-webhook` | Each has one `CREATE pods` rule and Failure Policy `Ignore`; configuration-only because no admission server is deployed |
 | [v06-storage.yaml](resources/v06-storage.yaml) | PersistentVolume `qe-v06-pv`; StorageClass `qe-v06-manual` | PV is 1Gi, `ReadWriteOnce`, `Retain`; StorageClass uses `kubernetes.io/no-provisioner` |
 | [v06-storage-pvc.yaml](resources/v06-storage-pvc.yaml) | PersistentVolumeClaim `qe-v06-claim` | Requests 500Mi and explicitly binds to `qe-v06-pv` |
 | [v06-access-control.yaml](resources/v06-access-control.yaml) | ServiceAccount `qe-v06-reader`; Role and RoleBinding `qe-v06-reader`; ClusterRole and ClusterRoleBinding `qe-v06-node-reader` | Namespaced role allows Pod `get/list`; cluster role allows Node `get/list` |
@@ -25,6 +32,10 @@ kubectl apply -f resources/v06-workloads.yaml
 kubectl apply -f resources/v06-statefulsets.yaml
 kubectl apply -f resources/v06-logs.yaml
 kubectl apply -f resources/v06-config.yaml
+kubectl apply -f resources/v06-config-data.yaml
+kubectl apply -f resources/v06-config-policies.yaml
+kubectl apply -f resources/v06-config-cluster.yaml
+kubectl apply -f resources/v06-config-webhooks.yaml
 kubectl apply -f resources/v06-storage.yaml
 kubectl apply -f resources/v06-access-control.yaml
 ```
@@ -82,18 +93,30 @@ Select namespace `qe-v06-workflows` in the Dashboard.
 
 ## Configuration and prerequisites
 
-1. Verify ResourceQuota `qe-v06-quota` and LimitRange `qe-v06-limits` details and hard/default values.
-2. HPA scenarios require metrics-server; without it, verify visibility but mark live scaling Partial.
-3. Webhook scenarios require a reachable webhook server. Configuration visibility can be tested independently; admission behavior is Partial without a server.
-4. Anonymous RBAC requires a restricted kubeconfig and should be tested separately from the workload namespace.
+1. Open ConfigMaps & Secrets and verify `qe-v06-config` and `qe-v06-secret`. Verify `qe-v06-config-consumer` is Running and `qe-v06-missing-key` is Pending.
+2. Apply `v06-config-recovery.yaml` through Apply YAML and verify the existing `qe-v06-missing-key` Pod becomes Running.
+3. Verify ResourceQuota `qe-v06-quota` and LimitRange `qe-v06-limits` values in Inspect; Summary only exposes metadata for these resources.
+4. Apply `v06-config-admission.yaml`. Verify `qe-v06-defaulted` is Running and Inspect shows request `100m` and limit `200m`.
+5. Apply `v06-config-quota-exceeded.yaml`. Verify Apply YAML reports no resource was applied and the Pod is absent. The app does not expose the exact quota rejection text.
+6. Verify HPA `qe-v06-hpa` shows `cpu: <unknown>/80%`, min 1, max 3, and 2 replicas when metrics-server is absent. Install metrics-server only for live scaling tests.
+7. Verify PDB `qe-v06-pdb` shows current healthy 2, desired healthy 1, allowed disruptions 1, and expected Pods 2. Direct Pod deletion is not an eviction and does not prove PDB enforcement.
+8. Verify Lease `qe-v06-lease`, PriorityClass `qe-v06-priority`, RuntimeClass `qe-v06-runtime`, and their consumer Pods. Cluster-scoped Config pages do not show a namespace selector.
+9. Verify ServiceAccount `qe-v06-reader` under Config and its binding under Access Control. Permission allow/deny requires a separate token or restricted kubeconfig.
+10. Verify both webhook configuration pages show the canonical fixtures, Webhooks 1, and Failure Policy Ignore. Admission behavior requires a reachable TLS webhook server and is not claimed by this fixture.
+11. Anonymous RBAC requires a restricted kubeconfig and should be tested separately from the workload namespace.
 
 ## Cleanup
 
 ```sh
-kubectl delete -f resources/v06-access-control.yaml
 kubectl delete -f resources/v06-storage-pvc.yaml --ignore-not-found
 kubectl delete -f resources/v06-storage.yaml
+kubectl delete -f resources/v06-config-webhooks.yaml --ignore-not-found
+kubectl delete -f resources/v06-config-cluster.yaml --ignore-not-found
+kubectl delete -f resources/v06-config-policies.yaml --ignore-not-found
+kubectl delete -f resources/v06-config-admission.yaml --ignore-not-found
+kubectl delete -f resources/v06-config-data.yaml --ignore-not-found
 kubectl delete -f resources/v06-config.yaml
+kubectl delete -f resources/v06-access-control.yaml
 kubectl delete -f resources/v06-logs.yaml
 kubectl delete -f resources/v06-statefulsets.yaml --ignore-not-found
 kubectl delete -f resources/v06-workloads.yaml --ignore-not-found
