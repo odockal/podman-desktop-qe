@@ -11,6 +11,11 @@ This scenario verifies deploy-scale-heal-delete operations for Deployments, Daem
   ```
   Resource file: [v06-workloads.yaml](resources/v06-workloads.yaml)
   Namespace: `qe-v06-workflows`
+- Apply the StatefulSet fixture:
+  ```bash
+  kubectl apply -f resources/v06-statefulsets.yaml
+  ```
+  Resource file: [v06-statefulsets.yaml](resources/v06-statefulsets.yaml)
 
 > **Note:** The fixture does not create Node objects. Kind manages its own nodes; the Nodes page will show the active Kind nodes.
 
@@ -70,8 +75,23 @@ This scenario verifies deploy-scale-heal-delete operations for Deployments, Daem
    Open the CronJobs page.
    **Expected:** `qe-v06-cron` shows Schedule=`*/5 * * * *`. The Last Scheduled column is populated after its first run.
 
+### StatefulSet
+
+12. **Navigate to StatefulSets**
+    Open the StatefulSets page.
+    **Expected:** `qe-v06-stateful` shows 2 desired/current/ready replicas and uses Service=`qe-v06-stateful`.
+
+13. **Verify stable StatefulSet Pod names and PVCs**
+    Open the Pods and Persistent Volume Claims pages.
+    **Expected:** Pods `qe-v06-stateful-0` and `qe-v06-stateful-1` are Running. PVCs `qe-v06-stateful-data-qe-v06-stateful-0` and `qe-v06-stateful-data-qe-v06-stateful-1` are Bound.
+
+14. **Delete one StatefulSet Pod**
+    Delete `qe-v06-stateful-0` from the Pods page.
+    **Expected:** The StatefulSet recreates `qe-v06-stateful-0`, reuses its PVC, and returns to 2/2 ready replicas.
+
 ## Cleanup
 
 ```bash
 kubectl delete -f resources/v06-workloads.yaml --ignore-not-found
+kubectl delete -f resources/v06-statefulsets.yaml --ignore-not-found
 ```

@@ -9,6 +9,7 @@ All verified workflow objects use the `qe-v06-` prefix and the `qe-v06-workflows
 | Fixture | Objects created | Important values |
 |---------|-----------------|------------------|
 | [v06-workloads.yaml](resources/v06-workloads.yaml) | Namespace `qe-v06-workflows`; Deployment `qe-v06-web`; DaemonSet `qe-v06-daemon`; ReplicaSet `qe-v06-replicaset`; Job `qe-v06-job`; CronJob `qe-v06-cron` | `qe-v06-web` starts at 1 replica and uses `nginx:1.25-alpine`; the Job prints `qe-v06-job-complete`; the CronJob prints `qe-v06-cron` |
+| [v06-statefulsets.yaml](resources/v06-statefulsets.yaml) | StatefulSet `qe-v06-stateful`; headless Service `qe-v06-stateful`; PVs `qe-v06-stateful-pv-0` and `qe-v06-stateful-pv-1` | Two stable Pods with pre-bound PVCs `qe-v06-stateful-data-qe-v06-stateful-0` and `qe-v06-stateful-data-qe-v06-stateful-1` |
 | [v06-logs.yaml](resources/v06-logs.yaml) | Pod `qe-v06-logs`, container `logger` | Emits `qe-v06-log-line` every second |
 | [v06-config.yaml](resources/v06-config.yaml) | ResourceQuota `qe-v06-quota`; LimitRange `qe-v06-limits` | Quota limits Pods, CPU requests, and CPU limits; LimitRange defaults are 100m request and 200m limit |
 | [v06-storage.yaml](resources/v06-storage.yaml) | PersistentVolume `qe-v06-pv`; StorageClass `qe-v06-manual` | PV is 1Gi, `ReadWriteOnce`, `Retain`; StorageClass uses `kubernetes.io/no-provisioner` |
@@ -21,6 +22,7 @@ When creating an additional ad-hoc object through **Apply YAML**, use a determin
 
 ```sh
 kubectl apply -f resources/v06-workloads.yaml
+kubectl apply -f resources/v06-statefulsets.yaml
 kubectl apply -f resources/v06-logs.yaml
 kubectl apply -f resources/v06-config.yaml
 kubectl apply -f resources/v06-storage.yaml
@@ -37,6 +39,12 @@ Select namespace `qe-v06-workflows` in the Dashboard.
 4. Scale back to 1 and verify the extra Pods disappear.
 5. Check `qe-v06-daemon`, `qe-v06-replicaset`, `qe-v06-job`, and `qe-v06-cron`. Verify ready/current counts, Job completion, and the CronJob schedule.
 6. Open details for a workload and confirm Summary, Inspect, and Patch are available.
+
+## StatefulSet lifecycle
+
+1. Open StatefulSets and verify `qe-v06-stateful` reaches 2/2 ready replicas.
+2. Verify Pods `qe-v06-stateful-0` and `qe-v06-stateful-1` and their PVCs are present and Bound.
+3. Delete `qe-v06-stateful-0` from the Pods page and verify the same ordinal Pod is recreated with its PVC.
 
 ## Pod logs and annotations
 
@@ -83,8 +91,9 @@ kubectl delete -f resources/v06-storage-pvc.yaml --ignore-not-found
 kubectl delete -f resources/v06-storage.yaml
 kubectl delete -f resources/v06-config.yaml
 kubectl delete -f resources/v06-logs.yaml
-kubectl delete -f resources/v06-workloads.yaml
-kubectl delete namespace qe-v06-workflows
+kubectl delete -f resources/v06-statefulsets.yaml --ignore-not-found
+kubectl delete -f resources/v06-workloads.yaml --ignore-not-found
+kubectl delete namespace qe-v06-workflows --ignore-not-found
 ```
 
 Delete only the temporary resources created by these fixtures.
