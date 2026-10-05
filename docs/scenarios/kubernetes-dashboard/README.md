@@ -32,3 +32,19 @@ YAML fixtures used across scenarios are in the [`resources/`](resources/) subdir
 | WF-11 | [wf-11-configuration-policies.md](wf-11-configuration-policies.md) | LimitRange, ResourceQuota, HPA, PDB, PriorityClass, RuntimeClass, Lease |
 | WF-12 | [wf-12-webhook-configurations.md](wf-12-webhook-configurations.md) | MutatingWebhookConfig and ValidatingWebhookConfig — view and delete |
 | WF-13 | [wf-13-anonymous-user-rbac.md](wf-13-anonymous-user-rbac.md) | Anonymous kubeconfig: all pages show "Not accessible", no data leaked |
+
+## Verified Podman Desktop workflow fixtures
+
+The following fixtures and runbook were used to verify the workflows against a connected Kind cluster. They keep the setup isolated in `qe-v06-workflows` and separate the PV/PVC binding step so the initial `Available` state can be observed:
+
+| File | Purpose |
+|------|---------|
+| [verified-workflows.md](verified-workflows.md) | Manual Podman Desktop steps, observed results, prerequisites, and cleanup |
+| [v06-workloads.yaml](resources/v06-workloads.yaml) | Namespace, Deployment, DaemonSet, ReplicaSet, Job, and CronJob |
+| [v06-logs.yaml](resources/v06-logs.yaml) | Streaming log Pod used by the logs workflow |
+| [v06-config.yaml](resources/v06-config.yaml) | ResourceQuota and LimitRange |
+| [v06-storage.yaml](resources/v06-storage.yaml) | PersistentVolume and StorageClass setup |
+| [v06-storage-pvc.yaml](resources/v06-storage-pvc.yaml) | Separate PVC binding step |
+| [v06-access-control.yaml](resources/v06-access-control.yaml) | ServiceAccount, Role, RoleBinding, ClusterRole, and ClusterRoleBinding |
+
+The current extension places Service Accounts under **Config**, while Roles and RoleBindings are under **Access Control**. HPA live scaling requires metrics-server; webhook admission requires a reachable webhook server; Gateway API requires its CRDs and controller.

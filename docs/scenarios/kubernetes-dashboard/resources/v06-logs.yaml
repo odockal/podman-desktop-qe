@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: qe-v06-logs
+  namespace: qe-v06-workflows
+spec:
+  containers:
+    - name: logger
+      image: busybox:1.36
+      command: ["sh", "-c", "while true; do echo qe-v06-log-line; sleep 1; done"]
