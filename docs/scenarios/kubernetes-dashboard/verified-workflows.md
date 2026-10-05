@@ -93,6 +93,8 @@ Select namespace `qe-v06-workflows` in the Dashboard.
 
 ## Configuration and prerequisites
 
+Detailed app-only steps are in [WF-11: Configuration & Policies](wf-11-configuration-policies.md) and [WF-12: Webhook Configurations](wf-12-webhook-configurations.md).
+
 1. Open ConfigMaps & Secrets and verify `qe-v06-config` and `qe-v06-secret`. Verify `qe-v06-config-consumer` is Running and `qe-v06-missing-key` is Pending.
 2. Apply `v06-config-recovery.yaml` through Apply YAML and verify the existing `qe-v06-missing-key` Pod becomes Running.
 3. Verify ResourceQuota `qe-v06-quota` and LimitRange `qe-v06-limits` values in Inspect; Summary only exposes metadata for these resources.
