@@ -7,12 +7,12 @@ This scenario verifies that configuration and policy resources — LimitRanges, 
 - Kind cluster running and connected in Podman Desktop.
 - Apply the required resources:
   ```bash
-  kubectl apply -f pr-tests.yaml
-  kubectl apply -f access-control.yaml
+  kubectl apply -f resources/pr-tests.yaml
+  kubectl apply -f resources/access-control.yaml
   ```
   Resource files:
   - [pr-tests.yaml](resources/pr-tests.yaml) — provides LimitRange, HPA, PDB, PriorityClass, RuntimeClass, Lease, MutatingWebhookConfig, and a `web` Deployment (nginx, 2 replicas)
-  - [access-control.yaml](resources/access-control.yaml) — provides ResourceQuota
+  - [access-control.yaml](resources/access-control.yaml) — provides ResourceQuota `test-quota`
 
 `pr-tests.yaml` includes a `web` Deployment (nginx, 2 replicas) that the HPA and PDB target.
 

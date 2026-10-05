@@ -1,0 +1,150 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: qe-v06-ns2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qe-v06-default-web
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qe-v06-default-web
+  template:
+    metadata:
+      labels:
+        app: qe-v06-default-web
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.25-alpine
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: qe-v06-default-pod
+  namespace: default
+  labels:
+    app: qe-v06-default-pod
+spec:
+  containers:
+    - name: worker
+      image: busybox:1.36
+      command: ["sh", "-c", "sleep 3600"]
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: qe-v06-default-daemon
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: qe-v06-default-daemon
+  template:
+    metadata:
+      labels:
+        app: qe-v06-default-daemon
+    spec:
+      containers:
+        - name: worker
+          image: busybox:1.36
+          command: ["sh", "-c", "sleep 3600"]
+---
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: qe-v06-default-replicaset
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qe-v06-default-replicaset
+  template:
+    metadata:
+      labels:
+        app: qe-v06-default-replicaset
+    spec:
+      containers:
+        - name: worker
+          image: busybox:1.36
+          command: ["sh", "-c", "sleep 3600"]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qe-v06-ns2-web
+  namespace: qe-v06-ns2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qe-v06-ns2-web
+  template:
+    metadata:
+      labels:
+        app: qe-v06-ns2-web
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.25-alpine
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: qe-v06-ns2-pod
+  namespace: qe-v06-ns2
+  labels:
+    app: qe-v06-ns2-pod
+spec:
+  containers:
+    - name: worker
+      image: busybox:1.36
+      command: ["sh", "-c", "sleep 3600"]
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: qe-v06-ns2-daemon
+  namespace: qe-v06-ns2
+spec:
+  selector:
+    matchLabels:
+      app: qe-v06-ns2-daemon
+  template:
+    metadata:
+      labels:
+        app: qe-v06-ns2-daemon
+    spec:
+      containers:
+        - name: worker
+          image: busybox:1.36
+          command: ["sh", "-c", "sleep 3600"]
+---
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: qe-v06-ns2-replicaset
+  namespace: qe-v06-ns2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qe-v06-ns2-replicaset
+  template:
+    metadata:
+      labels:
+        app: qe-v06-ns2-replicaset
+    spec:
+      containers:
+        - name: worker
+          image: busybox:1.36
+          command: ["sh", "-c", "sleep 3600"]

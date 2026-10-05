@@ -7,8 +7,8 @@ This scenario verifies that MutatingWebhookConfigurations and ValidatingWebhookC
 - Kind cluster running and connected in Podman Desktop.
 - Apply the required resources:
   ```bash
-  kubectl apply -f pr-tests.yaml
-  kubectl apply -f pr-1226-validating-webhook.yaml
+  kubectl apply -f resources/pr-tests.yaml
+  kubectl apply -f resources/pr-1226-validating-webhook.yaml
   ```
   Resource files:
   - [pr-tests.yaml](resources/pr-tests.yaml) — provides MutatingWebhookConfiguration (`sample-mwc`)

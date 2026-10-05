@@ -8,8 +8,8 @@ YAML fixtures used across scenarios are in the [`resources/`](resources/) subdir
 
 | File | Contents and exact object names | Used In |
 |------|----------|---------|
-| [cluster-resources.yaml](resources/cluster-resources.yaml) | `deploy1`, `deploy2`, `deploy3`; `pod1`, `pod2`, `pod3`; `svc1-clusterip`–`svc4-nodeport`; `ingress1`; `pvc1`; `configmap1`; `secret1-generic`–`secret3-tls`; `job1`; `cronjob1`; `daemonset1`, `daemonset2`; `replicaset1`, `replicaset2`; `pv1`; `storage-class1`; `endpoint1`; `network-policy1`; `ingress-class1`; `gateway-class1`; `gateway1`; `httproute1` | WF-02, WF-03, WF-07, WF-08, WF-09 |
-| [access-control.yaml](resources/access-control.yaml) | `test-sa`, `test-role`, `test-rolebinding`, `test-clusterrole`, `test-clusterrolebinding`, `test-quota`, `test-endpointslice` | WF-07, WF-10, WF-11 |
+| [cluster-resources.yaml](resources/cluster-resources.yaml) | General resource catalog for exploratory testing: `deploy1`, `deploy2`, `deploy3`; `pod1`, `pod2`, `pod3`; `svc1-clusterip`–`svc4-nodeport`; `ingress1`; `pvc1`; `configmap1`; `secret1-generic`–`secret3-tls`; `job1`; `cronjob1`; `daemonset1`, `daemonset2`; `replicaset1`, `replicaset2`; `pv1`; `storage-class1`; `endpoint1`; `network-policy1`; `ingress-class1`; `gateway-class1`; `gateway1`; `httproute1` | Exploratory use |
+| [access-control.yaml](resources/access-control.yaml) | General RBAC and EndpointSlice catalog: `test-sa`, `test-role`, `test-rolebinding`, `test-clusterrole`, `test-clusterrolebinding`, `test-quota`, `test-endpointslice` | Exploratory use |
 | [pr-tests.yaml](resources/pr-tests.yaml) | `web`, `mem-limit`, `web-hpa`, `web-pdb`, `high-priority`, `sample-runc`, `sample-lease`, `sample-mwc` | WF-11, WF-12 |
 | [pr-1226-validating-webhook.yaml](resources/pr-1226-validating-webhook.yaml) | `sample-vwc` ValidatingWebhookConfiguration | WF-12 |
 
@@ -46,5 +46,10 @@ The following fixtures and runbook were used to verify the workflows against a c
 | [v06-storage.yaml](resources/v06-storage.yaml) | PersistentVolume and StorageClass setup |
 | [v06-storage-pvc.yaml](resources/v06-storage-pvc.yaml) | Separate PVC binding step |
 | [v06-access-control.yaml](resources/v06-access-control.yaml) | ServiceAccount, Role, RoleBinding, ClusterRole, and ClusterRoleBinding |
+| [v06-namespace-filtering.yaml](resources/v06-namespace-filtering.yaml) | Workload objects in `default` and `qe-v06-ns2` for selector isolation |
+| [v06-port-forwarding.yaml](resources/v06-port-forwarding.yaml) | Pod `qe-v06-port` and Service `qe-v06-port-svc` |
+| [v06-ingress.yaml](resources/v06-ingress.yaml) | Deployment `qe-v06-hello`, Service `qe-v06-hello-svc`, Ingress `qe-v06-hello-ingress` |
+| [v06-network.yaml](resources/v06-network.yaml) | Service `qe-v06-network-svc`, Endpoints `qe-v06-network-endpoint`, EndpointSlice `qe-v06-network-slice`, NetworkPolicy `qe-v06-network-policy` |
+| [v06-gateway-api.yaml](resources/v06-gateway-api.yaml) | GatewayClass `qe-v06-gateway-class`, Gateway `qe-v06-gateway`, HTTPRoute `qe-v06-http-route`, and backend Service `qe-v06-gateway-svc` |
 
 The current extension places Service Accounts under **Config**, while Roles and RoleBindings are under **Access Control**. HPA live scaling requires metrics-server; webhook admission requires a reachable webhook server; Gateway API requires its CRDs and controller. Use the exact names in these tables when following the scenarios; do not substitute names without updating the expected results.

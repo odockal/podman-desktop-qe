@@ -9,31 +9,37 @@ This scenario verifies that Gateway API resources (GatewayClass, Gateway, HTTPRo
   ```bash
   kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.0/standard-install.yaml
   ```
-- Apply the cluster resources:
+- Apply the Gateway API resources:
   ```bash
-  kubectl apply -f cluster-resources.yaml
+  kubectl apply -f resources/v06-gateway-api.yaml
   ```
-  Resource file: [cluster-resources.yaml](resources/cluster-resources.yaml)
+  Resource file: [v06-gateway-api.yaml](resources/v06-gateway-api.yaml)
 
 ## Scenario Steps
 
-1. **Verify GatewayClass**  
-   Navigate to Gateway Classes and verify `gateway-class1` appears with Controller=`example.com/gateway-controller`.
+1. **Verify GatewayClass**
+   Navigate to Gateway Classes and verify `qe-v06-gateway-class` appears with Controller=`example.com/gateway-controller`.
 
-2. **Verify Gateway**  
-   Navigate to Gateways and verify `gateway1` appears with Gateway Class=`gateway-class1` and Listeners showing `http:80`.
+2. **Verify Gateway**
+   Select namespace `qe-v06-workflows`. Navigate to Gateways and verify `qe-v06-gateway` appears with Gateway Class=`qe-v06-gateway-class` and Listeners showing `http:80`.
 
-3. **Verify HTTPRoute**  
-   Navigate to HTTPRoutes and verify `httproute1` shows Hostnames=`example.com`, Parent Refs=`gateway1`, and Backend Refs=`svc1-clusterip:8080`.
+3. **Verify HTTPRoute**
+   Navigate to HTTPRoutes and verify `qe-v06-http-route` shows Parent Ref=`qe-v06-gateway` and Backend Ref=`qe-v06-gateway-svc:8080`.
 
-4. **Open HTTPRoute details**  
-   Click on `httproute1` to open its details.  
-   **Expected:** The rule shows PathPrefix `/` routing to backend `svc1-clusterip` port 8080.
+4. **Open HTTPRoute details**
+   Click on `qe-v06-http-route` to open its details.
+   **Expected:** The rule shows PathPrefix `/` routing to backend `qe-v06-gateway-svc` port 8080.
 
-5. **Delete httproute1 via Dashboard**  
-   Use the delete action on `httproute1`.  
-   **Expected:** `httproute1` disappears from HTTPRoutes. `gateway1` is still present in Gateways.
+5. **Delete qe-v06-http-route via Dashboard**
+   Use the delete action on `qe-v06-http-route`.
+   **Expected:** `qe-v06-http-route` disappears from HTTPRoutes. `qe-v06-gateway` is still present in Gateways.
 
-6. **Delete gateway1 via Dashboard**  
-   Use the delete action on `gateway1`.  
-   **Expected:** `gateway1` disappears from Gateways. `gateway-class1` is still present in Gateway Classes.
+6. **Delete qe-v06-gateway via Dashboard**
+   Use the delete action on `qe-v06-gateway`.
+   **Expected:** `qe-v06-gateway` disappears from Gateways. `qe-v06-gateway-class` is still present in Gateway Classes.
+
+## Cleanup
+
+```bash
+kubectl delete -f resources/v06-gateway-api.yaml --ignore-not-found
+```
