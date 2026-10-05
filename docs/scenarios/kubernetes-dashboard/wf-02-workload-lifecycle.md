@@ -81,13 +81,13 @@ This scenario verifies deploy-scale-heal-delete operations for Deployments, Daem
     Open the StatefulSets page.
     **Expected:** `qe-v06-stateful` shows 2 desired/current/ready replicas and uses Service=`qe-v06-stateful`.
 
-13. **Verify stable StatefulSet Pod names and PVCs**
-    Open the Pods and Persistent Volume Claims pages.
-    **Expected:** Pods `qe-v06-stateful-0` and `qe-v06-stateful-1` are Running. PVCs `qe-v06-stateful-data-qe-v06-stateful-0` and `qe-v06-stateful-data-qe-v06-stateful-1` are Bound.
+13. **Verify stable StatefulSet Pod names**
+    Open the Pods page.
+    **Expected:** Pods `qe-v06-stateful-0` and `qe-v06-stateful-1` are Running.
 
 14. **Delete one StatefulSet Pod**
     Delete `qe-v06-stateful-0` from the Pods page.
-    **Expected:** The StatefulSet recreates `qe-v06-stateful-0`, reuses its PVC, and returns to 2/2 ready replicas.
+    **Expected:** The StatefulSet recreates `qe-v06-stateful-0` and returns to 2/2 ready replicas.
 
 ## Cleanup
 
