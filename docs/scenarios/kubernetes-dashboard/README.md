@@ -40,7 +40,7 @@ The following fixtures and runbook were used to verify the workflows against a c
 | File | Purpose |
 |------|---------|
 | [verified-workflows.md](verified-workflows.md) | Manual Podman Desktop steps, observed results, prerequisites, and cleanup |
-| [v06-workloads.yaml](resources/v06-workloads.yaml) | Namespace, Deployment, DaemonSet, ReplicaSet, Job, and CronJob |
+| [v06-workloads.yaml](resources/v06-workloads.yaml) | Namespace, Deployment, DaemonSet, Job, CronJob, and the Deployment-owned ReplicaSet created by Kubernetes |
 | [v06-statefulsets.yaml](resources/v06-statefulsets.yaml) | StatefulSet `qe-v06-stateful`, headless Service `qe-v06-stateful`, and two pre-bound PVC/PV pairs |
 | [v06-logs.yaml](resources/v06-logs.yaml) | Streaming log Pod used by the logs workflow |
 | [v06-config.yaml](resources/v06-config.yaml) | ResourceQuota and LimitRange |

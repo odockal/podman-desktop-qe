@@ -8,7 +8,7 @@ All verified workflow objects use the `qe-v06-` prefix and the `qe-v06-workflows
 
 | Fixture | Objects created | Important values |
 |---------|-----------------|------------------|
-| [v06-workloads.yaml](resources/v06-workloads.yaml) | Namespace `qe-v06-workflows`; Deployment `qe-v06-web`; DaemonSet `qe-v06-daemon`; ReplicaSet `qe-v06-replicaset`; Job `qe-v06-job`; CronJob `qe-v06-cron` | `qe-v06-web` starts at 1 replica and uses `nginx:1.25-alpine`; the Job prints `qe-v06-job-complete`; the CronJob prints `qe-v06-cron` |
+| [v06-workloads.yaml](resources/v06-workloads.yaml) | Namespace `qe-v06-workflows`; Deployment `qe-v06-web`; DaemonSet `qe-v06-daemon`; Job `qe-v06-job`; CronJob `qe-v06-cron` and its Deployment-owned ReplicaSet | `qe-v06-web` starts at 1 replica and uses `nginx:1.25-alpine`; the completed Job remains visible for manual verification; the CronJob runs every minute |
 | [v06-statefulsets.yaml](resources/v06-statefulsets.yaml) | StatefulSet `qe-v06-stateful`; headless Service `qe-v06-stateful`; PVs `qe-v06-stateful-pv-0` and `qe-v06-stateful-pv-1` | Two stable Pods with pre-bound PVCs `qe-v06-stateful-data-qe-v06-stateful-0` and `qe-v06-stateful-data-qe-v06-stateful-1` |
 | [v06-logs.yaml](resources/v06-logs.yaml) | Pod `qe-v06-logs`, container `logger` | Emits `qe-v06-log-line` every second |
 | [v06-config.yaml](resources/v06-config.yaml) | ResourceQuota `qe-v06-quota`; LimitRange `qe-v06-limits` | Quota limits Pods, CPU requests, and CPU limits; LimitRange defaults are 100m request and 200m limit |
@@ -33,12 +33,16 @@ Select namespace `qe-v06-workflows` in the Dashboard.
 
 ## Workload lifecycle
 
-1. Open Deployments and verify `qe-v06-web` is Running with 1/1 replicas.
-2. Scale it to 3 from the Deployment details page and verify three Pods appear.
-3. Delete one owned Pod and verify the Deployment recreates it.
-4. Scale back to 1 and verify the extra Pods disappear.
-5. Check `qe-v06-daemon`, `qe-v06-replicaset`, `qe-v06-job`, and `qe-v06-cron`. Verify ready/current counts, Job completion, and the CronJob schedule.
-6. Open details for a workload and confirm Summary, Inspect, and Patch are available.
+1. Select namespace `qe-v06-workflows`, open Deployments, and verify `qe-v06-web` is Running with 1/1 replicas.
+2. Open its details and confirm Summary, Inspect, and Patch are available.
+3. Scale it to 3 from the Deployment details page and verify three Pods appear.
+4. Delete one owned Pod from the Pods page and verify the Deployment recreates it.
+5. Scale back to 1 and verify the extra Pods disappear.
+6. Open DaemonSets, inspect `qe-v06-daemon`, delete one owned Pod, and verify it returns to the expected schedulable-node count.
+7. Open ReplicaSets, locate the ReplicaSet whose Owner is `qe-v06-web`, and verify the generated ReplicaSet name is not assumed by the test.
+8. Delete that owned ReplicaSet and verify the Deployment creates a replacement with Desired=1, Current=1, and Ready=1.
+9. Open Jobs, verify `qe-v06-job` reaches 1/1 completion and remains visible, then delete it.
+10. Open CronJobs, verify `qe-v06-cron` shows Every minute and a populated Last Scheduled value, suspend it through Patch, verify its state, resume it, and delete it.
 
 ## StatefulSet lifecycle
 
