@@ -34,12 +34,27 @@ shared [cluster prerequisites](../../cluster-test-prerequisites.md). The
 legacy WF-11 and WF-12 documents below are retained for history; use the Config
 workflows for release testing.
 
+## Compute functional workflows
+
+The Compute section is organized by controller behavior. Each workflow embeds
+its own `test-*` fixtures and uses public Red Hat UBI images:
+
+| Group | Workflow | Prerequisite |
+| --- | --- | --- |
+| Deployments and ReplicaSets | [Deployment and ReplicaSet lifecycle](compute/deployment-replicaset.md) | Connected cluster and a namespace create permission |
+| DaemonSets | [DaemonSet lifecycle](compute/daemonset.md) | Three Ready Kind nodes |
+| Jobs and CronJobs | [Job and CronJob lifecycle](compute/jobs-cronjobs.md) | Connected cluster and a namespace create permission |
+| StatefulSets | [StatefulSet lifecycle](compute/statefulset.md) | Connected cluster and a namespace create permission |
+
+Start with [Compute workflows](compute/README.md). The legacy WF-02 document
+is retained for history; use these grouped workflows for release testing.
+
 ## Other scenarios
 
 | Scenario | File | Description |
 |----------|------|-------------|
 | WF-01 | [wf-01-extension-setup.md](wf-01-extension-setup.md) | Extension install, enable/disable toggle, kubeconfig connectivity |
-| WF-02 | [wf-02-workload-lifecycle.md](wf-02-workload-lifecycle.md) | Deploy, scale, self-heal, delete; DaemonSets, ReplicaSets, Jobs, CronJobs |
+| WF-02 | [Compute functional workflows](compute/README.md) | Deployments, ReplicaSets, DaemonSets, Jobs, CronJobs, and StatefulSets |
 | WF-03 | [wf-03-namespace-filtering.md](wf-03-namespace-filtering.md) | Namespace selector filtering across all workload pages |
 | WF-04 | [wf-04-pod-logs-annotations.md](wf-04-pod-logs-annotations.md) | Pod log streaming, timestamp annotation, color annotation |
 | WF-05 | [wf-05-port-forwarding.md](wf-05-port-forwarding.md) | Port forwarding for pods and services; real HTTP connectivity |
