@@ -9,6 +9,9 @@ denial only on a cluster whose CNI enforces NetworkPolicy.
 ## Prerequisites
 
 - Connected cluster and permission to create an isolated namespace.
+- Permission to list and get Services, Endpoints, EndpointSlices, NetworkPolicies,
+  Deployments, and Pods in that namespace. Resolve a **Not accessible** resource
+  page as an RBAC prerequisite before executing its checks.
 - For the negative connectivity check: a CNI with NetworkPolicy enforcement.
   Without it, perform the display checks and record the behavior check as
   blocked by the environment.

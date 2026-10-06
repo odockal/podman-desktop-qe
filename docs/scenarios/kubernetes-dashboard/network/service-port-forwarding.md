@@ -9,6 +9,9 @@ when the selector is restored.
 ## Prerequisites
 
 - Connected cluster and permission to create an isolated namespace.
+- Permission to list and get Services, Endpoints, EndpointSlices, Deployments,
+  and Pods in that namespace. If **Network → Services** says **Not
+  accessible**, correct the connected-context RBAC before starting this test.
 - Local port `50000` is free for the Service forward.
 
 ## Setup
@@ -64,9 +67,10 @@ spec:
    `app=test-network-web`, and offer **Summary**, **Inspect**, and **Patch**.
 2. In **Endpoints** or the Service detail view, verify two ready backends match
    the Deployment's two Running Pods.
-3. Start a Service forward from `8080` to local `50000`. On **Port
-   Forwarding**, verify Name=`test-network-service`, Type=Service, Local=`50000`,
-   and Remote=`8080`. `curl -fsS http://localhost:50000` must return HTTP 200.
+3. Open the Service **Summary** tab and start a forward from `8080` to local
+   `50000`. On **Network → Port Forwarding**, verify
+   Name=`test-network-service`, Type=Service, Local=`50000`, and Remote=`8080`.
+   `curl -fsS http://localhost:50000` must return HTTP 200.
 4. Patch the Service selector to `app: test-network-broken`. Refresh Endpoints:
    it must be empty. The existing forward must no longer return HTTP 200.
 5. Patch the selector back to `app: test-network-web`. Verify the endpoints and

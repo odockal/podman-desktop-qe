@@ -52,13 +52,14 @@ is retained for history; use these grouped workflows for release testing.
 ## Network functional workflows
 
 The Network section combines Service connectivity with the resources that
-explain its backend and policy behavior. Both workflows use inline `test-*`
-fixtures and public Red Hat UBI Python images:
+explain its backend, policy, and routing behavior. All workflows use inline
+`test-*` fixtures and public Red Hat UBI Python images:
 
 | Group | Workflow | Prerequisite |
 | --- | --- | --- |
 | Service connectivity | [Service and port-forwarding lifecycle](network/service-port-forwarding.md) | Connected cluster and free local port 50000 |
 | Service backends and policy | [Endpoints, EndpointSlices, and NetworkPolicy](network/service-endpoints-policy.md) | CNI enforcement for the negative policy check |
+| Routing APIs | [Ingress and Gateway API lifecycle](network/ingress-gateway-routing.md) | Ingress/Gateway controller and corresponding APIs installed |
 
 Start with [Network workflows](network/README.md). The legacy WF-05 and WF-07
 documents are retained for history; use these grouped workflows for release
@@ -73,9 +74,9 @@ testing.
 | WF-03 | [wf-03-namespace-filtering.md](wf-03-namespace-filtering.md) | Namespace selector filtering across all workload pages |
 | WF-04 | [wf-04-pod-logs-annotations.md](wf-04-pod-logs-annotations.md) | Pod log streaming, timestamp annotation, color annotation |
 | WF-05 | [Service and port-forwarding lifecycle](network/service-port-forwarding.md) | Service endpoints, local HTTP connectivity, selector failure, and recovery |
-| WF-06 | [wf-06-ingress-routing.md](wf-06-ingress-routing.md) | Ingress routing end-to-end HTTP; verify traffic stops after deletion |
+| WF-06 | [Ingress and Gateway API lifecycle](network/ingress-gateway-routing.md) | Ingress routing and API-resource lifecycle with controller gates |
 | WF-07 | [Endpoints, EndpointSlices, and NetworkPolicy](network/service-endpoints-policy.md) | Service backend discovery and policy configuration with a CNI gate |
-| WF-08 | [wf-08-gateway-api.md](wf-08-gateway-api.md) | Gateway API: GatewayClass, Gateway, HTTPRoute — create and delete |
+| WF-08 | [Ingress and Gateway API lifecycle](network/ingress-gateway-routing.md) | GatewayClass, Gateway, HTTPRoute lifecycle with explicit API/controller gates |
 | WF-09 | [wf-09-storage-lifecycle.md](wf-09-storage-lifecycle.md) | PV/PVC binding lifecycle: Available → Bound → Released |
 | WF-10 | [wf-10-access-control-crud.md](wf-10-access-control-crud.md) | RBAC CRUD: Roles, RoleBindings, ClusterRoles, ClusterRoleBindings |
 | WF-11 | [Config functional workflows](config/README.md) | ConfigMap/Secret dependencies, policy, live HPA scaling, and access/scheduling |
