@@ -14,101 +14,101 @@ Apply this YAML with `kubectl apply -f -` or paste it into Podman Desktop
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: qe-v06-config-verify
+  name: test-config-verify
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: qe-v06-config
-  namespace: qe-v06-config-verify
+  name: test-config
+  namespace: test-config-verify
 data:
   APP_MODE: dashboard
 ---
 apiVersion: v1
 kind: Secret
 metadata:
-  name: qe-v06-secret
-  namespace: qe-v06-config-verify
+  name: test-secret
+  namespace: test-config-verify
 type: Opaque
 stringData:
-  API_TOKEN: qe-v06-token
+  API_TOKEN: test-token
   RECOVERY_TOKEN: restored
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: qe-v06-config-consumer
-  namespace: qe-v06-config-verify
+  name: test-config-consumer
+  namespace: test-config-verify
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: qe-v06-config-consumer
+      app: test-config-consumer
   template:
     metadata:
       labels:
-        app: qe-v06-config-consumer
+        app: test-config-consumer
     spec:
       containers:
         - name: consumer
-          image: busybox:1.36
+          image: registry.access.redhat.com/ubi9/ubi-minimal:latest
           command:
             - sh
             - -ec
             - |
               test "$APP_MODE" = "dashboard"
-              test "$API_TOKEN" = "qe-v06-token"
+              test "$API_TOKEN" = "test-token"
               sleep 3600
           env:
             - name: APP_MODE
               valueFrom:
                 configMapKeyRef:
-                  name: qe-v06-config
+                  name: test-config
                   key: APP_MODE
             - name: API_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: qe-v06-secret
+                  name: test-secret
                   key: API_TOKEN
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: qe-v06-missing-secret
-  namespace: qe-v06-config-verify
+  name: test-missing-secret
+  namespace: test-config-verify
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: qe-v06-missing-secret
+      app: test-missing-secret
   template:
     metadata:
       labels:
-        app: qe-v06-missing-secret
+        app: test-missing-secret
     spec:
       containers:
         - name: consumer
-          image: busybox:1.36
+          image: registry.access.redhat.com/ubi9/ubi-minimal:latest
           command: ["sh", "-c", "sleep 3600"]
           env:
             - name: RECOVERY_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: qe-v06-recovery-secret
+                  name: test-recovery-secret
                   key: RECOVERY_TOKEN
 ```
-It creates the `qe-v06-config-verify` namespace, `qe-v06-config`,
-`qe-v06-secret`, a valid `qe-v06-config-consumer` Deployment, and a
-`qe-v06-missing-secret` Deployment that intentionally references a Secret that
+It creates the `test-config-verify` namespace, `test-config`,
+`test-secret`, a valid `test-config-consumer` Deployment, and a
+`test-missing-secret` Deployment that intentionally references a Secret that
 does not yet exist.
 
 ## Dashboard workflow
 
 1. In Podman Desktop, open **Config → ConfigMaps & Secrets** and select
-   `qe-v06-config-verify`.
-2. Inspect `qe-v06-config` and `qe-v06-secret`. Verify their keys in
+   `test-config-verify`.
+2. Inspect `test-config` and `test-secret`. Verify their keys in
    **Summary**, **Inspect**, and **Patch**.
-3. Open **Compute → Deployments** and **Pods**. `qe-v06-config-consumer` must
+3. Open **Compute → Deployments** and **Pods**. `test-config-consumer` must
    be `Running`; the missing-secret workload must not become `Running`.
 4. Apply the recovery Secret:
 
@@ -116,14 +116,14 @@ does not yet exist.
    apiVersion: v1
    kind: Secret
    metadata:
-     name: qe-v06-recovery-secret
-     namespace: qe-v06-config-verify
+     name: test-recovery-secret
+     namespace: test-config-verify
    type: Opaque
    stringData:
      RECOVERY_TOKEN: restored
    ```
 
-5. Refresh **Pods**. The Pod controlled by `qe-v06-missing-secret` must become
+5. Refresh **Pods**. The Pod controlled by `test-missing-secret` must become
    `Running` without recreating the Deployment.
 
 ## Invalid configuration and recovery
@@ -134,28 +134,28 @@ does not yet exist.
    apiVersion: v1
    kind: Secret
    metadata:
-     name: qe-v06-secret
-     namespace: qe-v06-config-verify
+     name: test-secret
+     namespace: test-config-verify
    type: Opaque
    stringData:
      API_TOKEN: invalid-token
      RECOVERY_TOKEN: restored
    ```
 
-2. In **Pods**, restart the `qe-v06-config-consumer` Pod from its row action.
+2. In **Pods**, restart the `test-config-consumer` Pod from its row action.
    The replacement Pod must fail because its startup command requires
-   `API_TOKEN=qe-v06-token`.
+   `API_TOKEN=test-token`.
 3. Restore the valid Secret and restart the failed Pod again:
 
    ```yaml
    apiVersion: v1
    kind: Secret
    metadata:
-     name: qe-v06-secret
-     namespace: qe-v06-config-verify
+     name: test-secret
+     namespace: test-config-verify
    type: Opaque
    stringData:
-     API_TOKEN: qe-v06-token
+     API_TOKEN: test-token
      RECOVERY_TOKEN: restored
    ```
 4. Verify the replacement is `Running`, then inspect the Secret to confirm the
@@ -172,5 +172,5 @@ does not yet exist.
 ## Cleanup
 
 ```sh
-kubectl delete namespace qe-v06-config-verify --ignore-not-found
+kubectl delete namespace test-config-verify --ignore-not-found
 ```

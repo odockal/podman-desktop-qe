@@ -2,7 +2,7 @@
 
 > The workflow-based Config suite is now the source of truth. Start with
 > [Config section workflows](README.md)
-> for fixed `qe-v06-*` resource definitions, prerequisites, expected results,
+> for fixed `test-*` resource definitions, prerequisites, expected results,
 > and cleanup. This consolidated runbook remains as a general manual example.
 
 This runbook reproduces the Config-section workflows using only the Kubernetes Dashboard extension in Podman Desktop. No `kubectl` commands are required.
@@ -14,7 +14,8 @@ This runbook reproduces the Config-section workflows using only the Kubernetes D
 - An isolated namespace named `qe-config-manual`.
 - Use **Config → Apply YAML → Custom YAML** for every fixture below.
 
-The examples use nginx because it is simple to observe from the Pods and Deployments pages.
+The examples use public Red Hat UBI images so they run without registry
+credentials on the local Kind test cluster.
 
 ## 1. Create the test namespace
 
@@ -70,7 +71,7 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: nginx:1.27
+        image: registry.access.redhat.com/ubi9/ubi-minimal:latest
         env:
         - name: APP_MODE
           valueFrom:
@@ -119,7 +120,7 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: nginx:1.27
+        image: registry.access.redhat.com/ubi9/ubi-minimal:latest
         env:
         - name: REQUIRED_PASSWORD
           valueFrom:
@@ -221,8 +222,8 @@ Prerequisite: install metrics-server and confirm `kubectl top nodes` returns dat
 
 For a repeatable scale-up check, use the YAML in
 [Live HPA scaling](hpa-live-scaling.md).
-In the **Horizontal Pod Autoscalers** page, select `qe-v06-hpa-verify` and
-verify `qe-v06-hpa-live` reports a numeric CPU value above `60%` and reaches
+In the **Horizontal Pod Autoscalers** page, select `test-hpa-verify` and
+verify `test-hpa-live` reports a numeric CPU value above `60%` and reaches
 three current and desired replicas.
 
 ## 5. ServiceAccount, Role, and RoleBinding

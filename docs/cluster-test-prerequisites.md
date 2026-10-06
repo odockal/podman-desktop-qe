@@ -47,7 +47,7 @@ Only proceed when the APIService is `Available=True` and `kubectl top nodes`
 returns a CPU and memory value for every node.
 
 Use [the live HPA scaling workflow](scenarios/kubernetes-dashboard/config/hpa-live-scaling.md) to test live
-scaling. Its YAML creates `qe-v06-hpa-verify`, where `qe-v06-hpa-live` should report
+scaling. Its YAML creates `test-hpa-verify`, where `test-hpa-live` should report
 CPU above its 60% target and reach three current and desired replicas.
 
 ## 3. Capability gates by workflow
@@ -67,7 +67,7 @@ CPU above its 60% target and reach three current and desired replicas.
 
 ## 4. Test namespace and cleanup policy
 
-Use one unique namespace per workflow run, such as `qe-v06-hpa-verify`.
+Use one unique namespace per workflow run, such as `test-hpa-verify`.
 Do not alter system components or pre-existing workloads when testing resource
 behavior. Cluster-scoped fixtures, port forwards, and webhook configurations
 need explicit cleanup steps; namespaced fixtures can be removed by deleting

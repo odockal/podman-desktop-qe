@@ -25,26 +25,26 @@ Apply this YAML with `kubectl apply -f -` or Podman Desktop **Apply YAML**:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: qe-v06-hpa-verify
+  name: test-hpa-verify
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: qe-v06-hpa-load
-  namespace: qe-v06-hpa-verify
+  name: test-hpa-load
+  namespace: test-hpa-verify
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: qe-v06-hpa-load
+      app: test-hpa-load
   template:
     metadata:
       labels:
-        app: qe-v06-hpa-load
+        app: test-hpa-load
     spec:
       containers:
         - name: load
-          image: busybox:1.36
+          image: registry.access.redhat.com/ubi9/ubi-minimal:latest
           command: ["sh", "-c", "while true; do :; done"]
           resources:
             requests:
@@ -57,13 +57,13 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: qe-v06-hpa-live
-  namespace: qe-v06-hpa-verify
+  name: test-hpa-live
+  namespace: test-hpa-verify
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: qe-v06-hpa-load
+    name: test-hpa-load
   minReplicas: 1
   maxReplicas: 3
   metrics:
@@ -74,26 +74,25 @@ spec:
           type: Utilization
           averageUtilization: 60
 ```
-
 Wait for the Deployment to become available:
 
 ```sh
-kubectl -n qe-v06-hpa-verify rollout status deployment/qe-v06-hpa-load --timeout=120s
+kubectl -n test-hpa-verify rollout status deployment/test-hpa-load --timeout=120s
 ```
 
 The Deployment begins with one CPU-bound Pod. Its container requests `50m` CPU,
 is limited to `250m`, and the HPA target is 60%. The resource names are
-`qe-v06-hpa-load` and `qe-v06-hpa-live`.
+`test-hpa-load` and `test-hpa-live`.
 
 ## Dashboard workflow
 
 1. Open **Config → Horizontal Pod Autoscalers** and select
-   `qe-v06-hpa-verify`.
-2. Verify `qe-v06-hpa-live` is `Running`; its metric must be numeric and above
+   `test-hpa-verify`.
+2. Verify `test-hpa-live` is `Running`; its metric must be numeric and above
    `cpu: 60%/60%`.
 3. Verify minimum Pods is `1`, maximum Pods is `3`, and both **Replicas** and
    **Desired** reach `3`.
-4. Open **Compute → Deployments** and verify `qe-v06-hpa-load` is Ready `3/3`.
+4. Open **Compute → Deployments** and verify `test-hpa-load` is Ready `3/3`.
 5. Open **Compute → Pods** and verify the three Pods are Running. Return to the
    HPA list and confirm it still shows the numeric metric and desired count.
 6. Open the HPA details and check **Summary**, **Inspect**, and **Patch**.
@@ -107,5 +106,5 @@ is limited to `250m`, and the HPA target is 60%. The resource names are
 ## Cleanup
 
 ```sh
-kubectl delete namespace qe-v06-hpa-verify --ignore-not-found
+kubectl delete namespace test-hpa-verify --ignore-not-found
 ```

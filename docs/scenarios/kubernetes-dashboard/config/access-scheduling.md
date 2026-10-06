@@ -13,19 +13,19 @@ Apply this YAML with `kubectl apply -f -` or Podman Desktop **Apply YAML**:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: qe-v06-access-verify
+  name: test-access-verify
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: qe-v06-reader
-  namespace: qe-v06-access-verify
+  name: test-reader
+  namespace: test-access-verify
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: qe-v06-reader
-  namespace: qe-v06-access-verify
+  name: test-reader
+  namespace: test-access-verify
 rules:
   - apiGroups: [""]
     resources: ["pods"]
@@ -34,21 +34,21 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: qe-v06-reader
-  namespace: qe-v06-access-verify
+  name: test-reader
+  namespace: test-access-verify
 subjects:
   - kind: ServiceAccount
-    name: qe-v06-reader
-    namespace: qe-v06-access-verify
+    name: test-reader
+    namespace: test-access-verify
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: qe-v06-reader
+  name: test-reader
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: qe-v06-node-reader
+  name: test-node-reader
 rules:
   - apiGroups: [""]
     resources: ["nodes"]
@@ -57,78 +57,83 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: qe-v06-node-reader
+  name: test-node-reader
 subjects:
   - kind: ServiceAccount
-    name: qe-v06-reader
-    namespace: qe-v06-access-verify
+    name: test-reader
+    namespace: test-access-verify
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: qe-v06-node-reader
+  name: test-node-reader
 ---
 apiVersion: coordination.k8s.io/v1
 kind: Lease
 metadata:
-  name: qe-v06-lease
-  namespace: qe-v06-access-verify
+  name: test-lease
+  namespace: test-access-verify
 spec:
-  holderIdentity: qe-v06-initial-holder
+  holderIdentity: test-initial-holder
   leaseDurationSeconds: 30
   leaseTransitions: 1
 ---
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 metadata:
-  name: qe-v06-priority
+  name: test-priority
 value: 100000
 globalDefault: false
-description: QE priority workflow
+description: Test priority workflow
 ---
 apiVersion: v1
 kind: Pod
 metadata:
-  name: qe-v06-rbac-check
-  namespace: qe-v06-access-verify
+  name: test-rbac-check
+  namespace: test-access-verify
 spec:
-  serviceAccountName: qe-v06-reader
+  serviceAccountName: test-reader
   restartPolicy: Never
   containers:
     - name: check
-      image: curlimages/curl:8.8.0
+      image: registry.access.redhat.com/ubi9/python-312:latest
       command:
-        - sh
-        - -ec
+        - python
+        - -c
         - |
-          api=https://kubernetes.default.svc
-          token=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
-          ca=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-          headers="Authorization: Bearer $token"
-          pods=$(curl -s -o /dev/null -w '%{http_code}' --cacert "$ca" -H "$headers" "$api/api/v1/namespaces/$POD_NAMESPACE/pods")
-          configmaps=$(curl -s -o /dev/null -w '%{http_code}' --cacert "$ca" -H "$headers" "$api/api/v1/namespaces/$POD_NAMESPACE/configmaps")
-          nodes=$(curl -s -o /dev/null -w '%{http_code}' --cacert "$ca" -H "$headers" "$api/api/v1/nodes")
-          echo "pods=$pods configmaps=$configmaps nodes=$nodes"
-          sleep 3600
+          import os, ssl, time, urllib.error, urllib.request
+          api = "https://kubernetes.default.svc"
+          token = open("/var/run/secrets/kubernetes.io/serviceaccount/token").read().strip()
+          ca = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+          context = ssl.create_default_context(cafile=ca)
+          headers = {"Authorization": f"Bearer {token}"}
+          def status(path):
+              try:
+                  return urllib.request.urlopen(urllib.request.Request(api + path, headers=headers), context=context).status
+              except urllib.error.HTTPError as error:
+                  return error.code
+          namespace = os.environ["POD_NAMESPACE"]
+          print(f"pods={status(f'/api/v1/namespaces/{namespace}/pods')} configmaps={status(f'/api/v1/namespaces/{namespace}/configmaps')} nodes={status('/api/v1/nodes')}")
+          time.sleep(3600)
       env:
         - name: POD_NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
 ```
-It creates `qe-v06-access-verify`, the `qe-v06-reader` ServiceAccount,
-Role/RoleBinding, `qe-v06-node-reader` ClusterRole/ClusterRoleBinding,
-`qe-v06-lease`, `qe-v06-priority`, and the `qe-v06-rbac-check` Pod.
+It creates `test-access-verify`, the `test-reader` ServiceAccount,
+Role/RoleBinding, `test-node-reader` ClusterRole/ClusterRoleBinding,
+`test-lease`, `test-priority`, and the `test-rbac-check` Pod.
 
 ## RBAC workflow
 
 1. Open **Config → Service Accounts**, **Access Control → Roles**, and
-   **Role Bindings**. Select `qe-v06-access-verify` for namespaced pages.
-2. Inspect `qe-v06-reader` in each page. Verify the Role grants only Pod
+   **Role Bindings**. Select `test-access-verify` for namespaced pages.
+2. Inspect `test-reader` in each page. Verify the Role grants only Pod
    `get` and `list`, and the RoleBinding subject is the same ServiceAccount.
 3. Open **Access Control → Cluster Roles** and **Cluster Role Bindings**.
-   Verify `qe-v06-node-reader` grants Node `get` and `list` and is bound to
+   Verify `test-node-reader` grants Node `get` and `list` and is bound to
    the reader ServiceAccount.
-4. Open the logs for `qe-v06-rbac-check`. Expect:
+4. Open the logs for `test-rbac-check`. Expect:
 
    ```text
    pods=200 configmaps=403 nodes=200
@@ -139,8 +144,8 @@ Role/RoleBinding, `qe-v06-node-reader` ClusterRole/ClusterRoleBinding,
 
 ## Lease and PriorityClass workflow
 
-1. Open **Config → Leases**, inspect `qe-v06-lease`, and verify its initial
-   holder is `qe-v06-initial-holder`.
+1. Open **Config → Leases**, inspect `test-lease`, and verify its initial
+   holder is `test-initial-holder`.
 2. Use **Apply YAML** to update the Lease. Refresh the list and Inspect view to
    confirm both values update.
 
@@ -148,14 +153,14 @@ Role/RoleBinding, `qe-v06-node-reader` ClusterRole/ClusterRoleBinding,
    apiVersion: coordination.k8s.io/v1
    kind: Lease
    metadata:
-     name: qe-v06-lease
-     namespace: qe-v06-access-verify
+     name: test-lease
+     namespace: test-access-verify
    spec:
-     holderIdentity: qe-v06-updated-holder
+     holderIdentity: test-updated-holder
      leaseDurationSeconds: 30
      leaseTransitions: 2
    ```
-3. Open **Config → Priority Classes** and inspect `qe-v06-priority`. Verify
+3. Open **Config → Priority Classes** and inspect `test-priority`. Verify
    the value is `100000` and it is not the global default.
 
 ## RuntimeClass workflow
@@ -167,35 +172,35 @@ Apply this YAML:
 apiVersion: node.k8s.io/v1
 kind: RuntimeClass
 metadata:
-  name: qe-v06-runc
+  name: test-runc
 handler: runc
 ---
 apiVersion: v1
 kind: Pod
 metadata:
-  name: qe-v06-priority-runtime
-  namespace: qe-v06-access-verify
+  name: test-priority-runtime
+  namespace: test-access-verify
 spec:
-  priorityClassName: qe-v06-priority
-  runtimeClassName: qe-v06-runc
+  priorityClassName: test-priority
+  runtimeClassName: test-runc
   containers:
     - name: sleeper
-      image: busybox:1.36
+      image: registry.access.redhat.com/ubi9/ubi-minimal:latest
       command: ["sh", "-c", "sleep 3600"]
 ```
 
-Open **Config → Runtime Classes** and inspect `qe-v06-runc`. Then inspect
-`qe-v06-priority-runtime` in **Pods** and verify it is Running with both
-`priorityClassName: qe-v06-priority` and `runtimeClassName: qe-v06-runc`.
+Open **Config → Runtime Classes** and inspect `test-runc`. Then inspect
+`test-priority-runtime` in **Pods** and verify it is Running with both
+`priorityClassName: test-priority` and `runtimeClassName: test-runc`.
 If the handler is unavailable, stop this sub-workflow and record the missing
 runtime handler as the prerequisite failure.
 
 ## Cleanup
 
 ```sh
-kubectl delete namespace qe-v06-access-verify --ignore-not-found
-kubectl delete clusterrolebinding qe-v06-node-reader --ignore-not-found
-kubectl delete clusterrole qe-v06-node-reader --ignore-not-found
-kubectl delete priorityclass qe-v06-priority --ignore-not-found
-kubectl delete runtimeclass qe-v06-runc --ignore-not-found
+kubectl delete namespace test-access-verify --ignore-not-found
+kubectl delete clusterrolebinding test-node-reader --ignore-not-found
+kubectl delete clusterrole test-node-reader --ignore-not-found
+kubectl delete priorityclass test-priority --ignore-not-found
+kubectl delete runtimeclass test-runc --ignore-not-found
 ```
