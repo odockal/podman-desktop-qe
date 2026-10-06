@@ -15,7 +15,26 @@ YAML fixtures used across scenarios are in the [`resources/`](resources/) subdir
 
 > **Kind cluster note:** `cluster-resources.yaml` contains Node objects designed for the envtest fixture. On Kind, skip applying Node resources — Kind manages its own node(s).
 
-## Scenarios
+## Config functional workflows
+
+The Config section is maintained as a functional suite rather than a list of
+independent resource checks. Its workflows embed the exact YAML used by each
+scenario and state the prerequisite gate before the test steps:
+
+| Group | Workflow | Prerequisite |
+| --- | --- | --- |
+| Configuration | [ConfigMap and Secret dependency lifecycle](config/configuration-dependencies.md) | Dedicated namespace and permission to create workloads |
+| Policy | [Resource policy and disruption lifecycle](config/resource-policy-pdb.md) | Dedicated namespace and permission to create workloads |
+| Scaling | [Live HPA scaling](config/hpa-live-scaling.md) | Metrics Server and numeric `kubectl top nodes` output |
+| Access and scheduling | [Access and scheduling](config/access-scheduling.md) | RuntimeClass handler exists when testing workload scheduling |
+| Admission control | [Admission webhook lifecycle](config/admission-webhooks.md) | TLS server, CA bundle, and namespace-scoped selector |
+
+Start with [Config workflows and prerequisites](config/README.md) and the
+shared [cluster prerequisites](../../cluster-test-prerequisites.md). The
+legacy WF-11 and WF-12 documents below are retained for history; use the Config
+workflows for release testing.
+
+## Other scenarios
 
 | Scenario | File | Description |
 |----------|------|-------------|
@@ -29,8 +48,8 @@ YAML fixtures used across scenarios are in the [`resources/`](resources/) subdir
 | WF-08 | [wf-08-gateway-api.md](wf-08-gateway-api.md) | Gateway API: GatewayClass, Gateway, HTTPRoute — create and delete |
 | WF-09 | [wf-09-storage-lifecycle.md](wf-09-storage-lifecycle.md) | PV/PVC binding lifecycle: Available → Bound → Released |
 | WF-10 | [wf-10-access-control-crud.md](wf-10-access-control-crud.md) | RBAC CRUD: Roles, RoleBindings, ClusterRoles, ClusterRoleBindings |
-| WF-11 | [wf-11-configuration-policies.md](wf-11-configuration-policies.md) | Verified Config pages plus proposed Config/Secret recovery, quota usage, HPA, PDB, Lease, and ServiceAccount authorization checks |
-| WF-12 | [wf-12-webhook-configurations.md](wf-12-webhook-configurations.md) | Webhook configuration list/details plus a proposed TLS admission behavior check |
+| WF-11 | [Config functional workflows](config/README.md) | ConfigMap/Secret dependencies, policy, live HPA scaling, and access/scheduling |
+| WF-12 | [Admission webhook lifecycle](config/admission-webhooks.md) | Scoped TLS webhook mutation and rejection of Pods |
 | WF-13 | [wf-13-anonymous-user-rbac.md](wf-13-anonymous-user-rbac.md) | Anonymous kubeconfig: all pages show "Not accessible", no data leaked |
 
 ## Verified Podman Desktop workflow fixtures
