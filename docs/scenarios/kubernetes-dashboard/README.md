@@ -46,9 +46,7 @@ scenario and state the prerequisite gate before the test steps:
 | Admission control | [Admission webhook lifecycle](config/admission-webhooks.md) | TLS server, CA bundle, and namespace-scoped selector |
 
 Start with [Config workflows and prerequisites](config/README.md) and the
-shared [cluster prerequisites](../../cluster-test-prerequisites.md). The
-legacy WF-11 and WF-12 documents below are retained for history; use the Config
-workflows for release testing.
+shared [cluster prerequisites](../../cluster-test-prerequisites.md).
 
 ## Compute functional workflows
 
@@ -62,8 +60,7 @@ its own `test-*` fixtures and uses public Red Hat UBI images:
 | Jobs and CronJobs | [Job and CronJob lifecycle](compute/jobs-cronjobs.md) | Connected cluster and a namespace create permission |
 | StatefulSets | [StatefulSet lifecycle](compute/statefulset.md) | Connected cluster and a namespace create permission |
 
-Start with [Compute workflows](compute/README.md). The legacy WF-02 document
-is retained for history; use these grouped workflows for release testing.
+Start with [Compute workflows](compute/README.md).
 
 ## Network functional workflows
 
@@ -77,59 +74,11 @@ explain its backend, policy, and routing behavior. All workflows use inline
 | Service backends and policy | [Endpoints, EndpointSlices, and NetworkPolicy](network/service-endpoints-policy.md) | CNI enforcement for the negative policy check |
 | Routing APIs | [Ingress and Gateway API lifecycle](network/ingress-gateway-routing.md) | Ingress/Gateway controller and corresponding APIs installed |
 
-Start with [Network workflows](network/README.md). The legacy WF-05 and WF-07
-documents are retained for history; use these grouped workflows for release
-testing.
+Start with [Network workflows](network/README.md).
 
-## Other scenarios
+## Standalone workflows
 
 | Scenario | File | Description |
 |----------|------|-------------|
 | WF-01 | [wf-01-extension-setup.md](wf-01-extension-setup.md) | Extension install, enable/disable toggle, kubeconfig connectivity |
-| WF-02 | [Compute functional workflows](compute/README.md) | Deployments, ReplicaSets, DaemonSets, Jobs, CronJobs, and StatefulSets |
-| WF-03 | [Namespace workflows](namespaces/README.md) | Namespace creation, selection isolation, cascade deletion, and selector refresh |
 | WF-04 | [wf-04-pod-logs-annotations.md](wf-04-pod-logs-annotations.md) | Pod log streaming, timestamp annotation, color annotation |
-| WF-05 | [Service and port-forwarding lifecycle](network/service-port-forwarding.md) | Service endpoints, local HTTP connectivity, selector failure, and recovery |
-| WF-06 | [Ingress and Gateway API lifecycle](network/ingress-gateway-routing.md) | Ingress routing and API-resource lifecycle with controller gates |
-| WF-07 | [Endpoints, EndpointSlices, and NetworkPolicy](network/service-endpoints-policy.md) | Service backend discovery and policy configuration with a CNI gate |
-| WF-08 | [Ingress and Gateway API lifecycle](network/ingress-gateway-routing.md) | GatewayClass, Gateway, HTTPRoute lifecycle with explicit API/controller gates |
-| WF-09 | [Storage workflows](storage/README.md) | Dynamic PVC consumer and static `Retain` PV lifecycle |
-| WF-10 | [Access Control workflows](access-control/README.md) | Namespaced and cluster-scoped RBAC permission lifecycle |
-| WF-11 | [Config functional workflows](config/README.md) | ConfigMap/Secret dependencies, policy, live HPA scaling, and access/scheduling |
-| WF-12 | [Admission webhook lifecycle](config/admission-webhooks.md) | Scoped TLS webhook mutation and rejection of Pods |
-| WF-13 | [Restricted-user Dashboard access](access-control/restricted-user-rbac.md) | Connected restricted identity: no data leakage and recovery after kubeconfig restore |
-
-## Verified Podman Desktop workflow fixtures
-
-The following fixtures and runbook were used to verify the workflows against a connected Kind cluster. They keep the setup isolated in `qe-v06-workflows` and separate the PV/PVC binding step so the initial `Available` state can be observed:
-
-| File | Purpose |
-|------|---------|
-| [verified-workflows.md](verified-workflows.md) | Manual Podman Desktop steps, observed results, prerequisites, and cleanup |
-| [v06-workloads.yaml](resources/v06-workloads.yaml) | Namespace, Deployment, DaemonSet, Job, CronJob, and the Deployment-owned ReplicaSet created by Kubernetes |
-| [v06-statefulsets.yaml](resources/v06-statefulsets.yaml) | StatefulSet `qe-v06-stateful`, headless Service `qe-v06-stateful`, and two pre-bound PVC/PV pairs |
-| [v06-logs.yaml](resources/v06-logs.yaml) | Streaming log Pod used by the logs workflow |
-| [v06-config.yaml](resources/v06-config.yaml) | ResourceQuota and LimitRange |
-| [v06-config-data.yaml](resources/v06-config-data.yaml) | ConfigMap, Secret, valid consumer Pod, and missing-key Pod |
-| [v06-config-recovery.yaml](resources/v06-config-recovery.yaml) | Secret update that recovers the missing-key Pod |
-| [v06-config-admission.yaml](resources/v06-config-admission.yaml) | Pod without resource values for LimitRange defaulting |
-| [v06-config-quota-exceeded.yaml](resources/v06-config-quota-exceeded.yaml) | Pod request that is predictably rejected by ResourceQuota |
-| [v06-config-quota-usage.yaml](resources/v06-config-quota-usage.yaml) | Small, bounded Pod used to verify ResourceQuota `status.used` updates |
-| [v06-config-invalid-token.yaml](resources/v06-config-invalid-token.yaml) | Secret update that deliberately makes the Config/Secret consumer fail |
-| [v06-config-valid-token.yaml](resources/v06-config-valid-token.yaml) | Secret update that restores the required Config/Secret consumer value |
-| [v06-config-consumer.yaml](resources/v06-config-consumer.yaml) | Standalone recreation fixture for Pod `qe-v06-config-consumer` |
-| [v06-config-policies.yaml](resources/v06-config-policies.yaml) | HPA target Deployment, HPA, PDB, and Lease |
-| [v06-config-hpa-load.yaml](resources/v06-config-hpa-load.yaml) | CPU load Deployment and HPA for the optional metrics-server scaling test |
-| [v06-config-cluster.yaml](resources/v06-config-cluster.yaml) | PriorityClass, RuntimeClass, and consumer Pods |
-| [v06-config-webhooks.yaml](resources/v06-config-webhooks.yaml) | Safe configuration-only mutating and validating webhook fixtures |
-| [v06-storage.yaml](resources/v06-storage.yaml) | PersistentVolume and StorageClass setup |
-| [v06-storage-pvc.yaml](resources/v06-storage-pvc.yaml) | Separate PVC binding step |
-| [v06-access-control.yaml](resources/v06-access-control.yaml) | ServiceAccount, Role, RoleBinding, ClusterRole, and ClusterRoleBinding |
-| [v06-config-rbac-check.yaml](resources/v06-config-rbac-check.yaml) | ServiceAccount-backed Pod that proves allowed Pod listing and denied ConfigMap listing |
-| [v06-namespace-filtering.yaml](resources/v06-namespace-filtering.yaml) | Workload objects in `default` and `qe-v06-ns2` for selector isolation |
-| [v06-port-forwarding.yaml](resources/v06-port-forwarding.yaml) | Pod `qe-v06-port` and Service `qe-v06-port-svc` |
-| [v06-ingress.yaml](resources/v06-ingress.yaml) | Deployment `qe-v06-hello`, Service `qe-v06-hello-svc`, Ingress `qe-v06-hello-ingress` |
-| [v06-network.yaml](resources/v06-network.yaml) | Service `qe-v06-network-svc`, Endpoints `qe-v06-network-endpoint`, EndpointSlice `qe-v06-network-slice`, NetworkPolicy `qe-v06-network-policy` |
-| [v06-gateway-api.yaml](resources/v06-gateway-api.yaml) | GatewayClass `qe-v06-gateway-class`, Gateway `qe-v06-gateway`, HTTPRoute `qe-v06-http-route`, and backend Service `qe-v06-gateway-svc` |
-
-The current extension places Service Accounts under **Config**, while Roles and RoleBindings are under **Access Control**. HPA live scaling requires metrics-server; without it, the expected metric is `<unknown>/80%`. Webhook admission requires a reachable TLS webhook server, so the supplied webhook fixtures test configuration display rather than mutation or rejection. PDB enforcement requires the Eviction API; direct Pod deletion is not an eviction. Gateway API requires its CRDs and controller. The functional cases labelled **proposed** are not verified results; run them before marking their sheet rows as passed. Use the exact names in these tables when following the scenarios; do not substitute names without updating the expected results.
