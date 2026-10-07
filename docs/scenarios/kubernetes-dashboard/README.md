@@ -2,6 +2,22 @@
 
 This directory contains manual test scenario docs for the Kubernetes Dashboard Podman Desktop extension v0.6.0 release.
 
+## Section workflow runbooks
+
+These focused runbooks mirror the Dashboard navigation and use meaningful
+resource workflows rather than isolated list checks. Start with
+[cluster setup and capability gates](setup/README.md) before running a section.
+
+| Section | Runbook index |
+| --- | --- |
+| Nodes | [Node topology and scheduling](nodes/README.md) |
+| Compute | [Compute workflows](compute/README.md) |
+| Config | [Config workflows](config/README.md) |
+| Network | [Network workflows](network/README.md) |
+| Storage | [Storage workflows](storage/README.md) |
+| Access Control | [Access Control workflows](access-control/README.md) |
+| Namespaces | [Namespace workflows](namespaces/README.md) |
+
 ## Resource Files
 
 YAML fixtures used across scenarios are in the [`resources/`](resources/) subdirectory:
@@ -71,17 +87,17 @@ testing.
 |----------|------|-------------|
 | WF-01 | [wf-01-extension-setup.md](wf-01-extension-setup.md) | Extension install, enable/disable toggle, kubeconfig connectivity |
 | WF-02 | [Compute functional workflows](compute/README.md) | Deployments, ReplicaSets, DaemonSets, Jobs, CronJobs, and StatefulSets |
-| WF-03 | [wf-03-namespace-filtering.md](wf-03-namespace-filtering.md) | Namespace selector filtering across all workload pages |
+| WF-03 | [Namespace workflows](namespaces/README.md) | Namespace creation, selection isolation, cascade deletion, and selector refresh |
 | WF-04 | [wf-04-pod-logs-annotations.md](wf-04-pod-logs-annotations.md) | Pod log streaming, timestamp annotation, color annotation |
 | WF-05 | [Service and port-forwarding lifecycle](network/service-port-forwarding.md) | Service endpoints, local HTTP connectivity, selector failure, and recovery |
 | WF-06 | [Ingress and Gateway API lifecycle](network/ingress-gateway-routing.md) | Ingress routing and API-resource lifecycle with controller gates |
 | WF-07 | [Endpoints, EndpointSlices, and NetworkPolicy](network/service-endpoints-policy.md) | Service backend discovery and policy configuration with a CNI gate |
 | WF-08 | [Ingress and Gateway API lifecycle](network/ingress-gateway-routing.md) | GatewayClass, Gateway, HTTPRoute lifecycle with explicit API/controller gates |
-| WF-09 | [wf-09-storage-lifecycle.md](wf-09-storage-lifecycle.md) | PV/PVC binding lifecycle: Available → Bound → Released |
-| WF-10 | [wf-10-access-control-crud.md](wf-10-access-control-crud.md) | RBAC CRUD: Roles, RoleBindings, ClusterRoles, ClusterRoleBindings |
+| WF-09 | [Storage workflows](storage/README.md) | Dynamic PVC consumer and static `Retain` PV lifecycle |
+| WF-10 | [Access Control workflows](access-control/README.md) | Namespaced and cluster-scoped RBAC permission lifecycle |
 | WF-11 | [Config functional workflows](config/README.md) | ConfigMap/Secret dependencies, policy, live HPA scaling, and access/scheduling |
 | WF-12 | [Admission webhook lifecycle](config/admission-webhooks.md) | Scoped TLS webhook mutation and rejection of Pods |
-| WF-13 | [wf-13-anonymous-user-rbac.md](wf-13-anonymous-user-rbac.md) | Anonymous kubeconfig: all pages show "Not accessible", no data leaked |
+| WF-13 | [Restricted-user Dashboard access](access-control/restricted-user-rbac.md) | Connected restricted identity: no data leakage and recovery after kubeconfig restore |
 
 ## Verified Podman Desktop workflow fixtures
 
