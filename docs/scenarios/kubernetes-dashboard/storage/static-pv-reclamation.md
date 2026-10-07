@@ -10,7 +10,7 @@ deletes that PV.
 
 Use a test cluster where a Pod can run on the node hosting the static volume.
 The fixture below pins both the PV and consumer to the Kind control-plane node.
-Replace `daemonset-test-control-plane` if the local cluster uses a different
+Replace `kubernetes-dashboard-test-control-plane` if the local cluster uses a different
 node name.
 
 ## Setup
@@ -44,7 +44,7 @@ spec:
             - key: kubernetes.io/hostname
               operator: In
               values:
-                - daemonset-test-control-plane
+                - kubernetes-dashboard-test-control-plane
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

@@ -6,9 +6,9 @@ procedure is the [shared cluster prerequisite guide](../../../cluster-test-prere
 
 ## Baseline setup
 
-1. Save the following Kind configuration as `kind-daemonset-cluster.yaml` and
-   create the canonical three-node `daemonset-test` cluster.
-2. Select `kind-daemonset-test` in both `kubectl` and Podman Desktop, then
+1. Use [`kind-kubernetes-dashboard-test.yaml`](kind-kubernetes-dashboard-test.yaml)
+   to create the canonical three-node `kubernetes-dashboard-test` cluster.
+2. Select `kind-kubernetes-dashboard-test` in both `kubectl` and Podman Desktop, then
    wait until the control plane and both workers are `Ready`.
 3. Keep host ports `9090` and `9443` free; the profile maps them to the
    control-plane node for Ingress and Gateway traffic checks.
@@ -17,40 +17,20 @@ procedure is the [shared cluster prerequisite guide](../../../cluster-test-prere
 
 ## Kind configuration
 
-```yaml
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-name: daemonset-test
-nodes:
-  - role: control-plane
-    kubeadmConfigPatches:
-      - |
-        kind: InitConfiguration
-        nodeRegistration:
-          kubeletExtraArgs:
-            node-labels: "ingress-ready=true"
-    extraPortMappings:
-      - containerPort: 80
-        hostPort: 9090
-        protocol: TCP
-      - containerPort: 443
-        hostPort: 9443
-        protocol: TCP
-  - role: worker
-  - role: worker
-```
+The complete configuration is in
+[`kind-kubernetes-dashboard-test.yaml`](kind-kubernetes-dashboard-test.yaml).
 
 Create and validate the cluster:
 
 ```sh
-kind create cluster --config kind-daemonset-cluster.yaml
-kubectl config use-context kind-daemonset-test
+kind create cluster --config kind-kubernetes-dashboard-test.yaml
+kubectl config use-context kind-kubernetes-dashboard-test
 kubectl wait --for=condition=Ready node --all --timeout=120s
 kubectl get nodes -o wide
 ```
 
 In Podman Desktop, make sure the Kubernetes context shown by the Dashboard is
-also `kind-daemonset-test`. The expected inventory is one control plane and
+also `kind-kubernetes-dashboard-test`. The expected inventory is one control plane and
 two workers.
 
 ## Capability gates

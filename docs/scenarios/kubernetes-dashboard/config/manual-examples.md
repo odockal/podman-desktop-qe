@@ -303,7 +303,7 @@ From **Namespaces**, open `qe-config-manual` and delete it after the run. Confir
 
 ## Results from the direct Podman Desktop run
 
-The workflows were exercised against the local `kind-daemonset-test` cluster using an isolated `qe-config-flow` namespace. The temporary fixtures were removed after verification.
+The workflows were exercised against the local `kind-kubernetes-dashboard-test` cluster using an isolated `qe-config-flow` namespace. The temporary fixtures were removed after verification.
 
 - ConfigMap and Secret consumers reached Running, and their Summary, Inspect, and Patch pages opened.
 - A Deployment referencing a missing Secret entered `CreateContainerConfigError`; adding the Secret recovered the Pod to Running.

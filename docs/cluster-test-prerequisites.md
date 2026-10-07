@@ -6,13 +6,12 @@ additional cluster capability.
 
 ## 1. Baseline multi-node Kind cluster
 
-Create the canonical three-node cluster. Save the
-[Kind configuration from the setup section](scenarios/kubernetes-dashboard/setup/README.md#kind-configuration)
-as `kind-daemonset-cluster.yaml` before running these commands:
+Create the canonical three-node cluster using the
+[Kind configuration](scenarios/kubernetes-dashboard/setup/kind-kubernetes-dashboard-test.yaml):
 
 ```sh
-kind create cluster --config kind-daemonset-cluster.yaml
-kubectl config use-context kind-daemonset-test
+kind create cluster --config kind-kubernetes-dashboard-test.yaml
+kubectl config use-context kind-kubernetes-dashboard-test
 kubectl wait --for=condition=Ready node --all --timeout=120s
 kubectl get nodes -o wide
 ```

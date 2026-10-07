@@ -8,7 +8,7 @@ the effect of node selection on a workload.
 
 - Create the three-node Kind cluster from
   [the cluster prerequisite guide](../../../cluster-test-prerequisites.md).
-- Select `kind-daemonset-test` in both Podman Desktop and `kubectl`.
+- Select `kind-kubernetes-dashboard-test` in both Podman Desktop and `kubectl`.
 - Confirm every node is Ready:
 
 ```sh
