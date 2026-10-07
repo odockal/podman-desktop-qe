@@ -1,4 +1,4 @@
-# WF-04: Pod Logs & Annotation Features (New in 0.6.0)
+# Pod logs and annotation features
 
 This scenario verifies streaming pod logs and the dashboard-specific annotations for timestamps and colors.
 

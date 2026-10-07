@@ -17,6 +17,7 @@ resource workflows rather than isolated list checks. Start with
 | Storage | [Storage workflows](storage/README.md) |
 | Access Control | [Access Control workflows](access-control/README.md) |
 | Namespaces | [Namespace workflows](namespaces/README.md) |
+| Compatibility | [Kubernetes Contexts integration](compatibility/kubernetes-contexts.md) |
 
 ## Resource Files
 
@@ -76,9 +77,9 @@ explain its backend, policy, and routing behavior. All workflows use inline
 
 Start with [Network workflows](network/README.md).
 
-## Standalone workflows
+## Standalone scenarios
 
 | Scenario | File | Description |
 |----------|------|-------------|
-| WF-01 | [wf-01-extension-setup.md](wf-01-extension-setup.md) | Extension install, enable/disable toggle, kubeconfig connectivity |
-| WF-04 | [wf-04-pod-logs-annotations.md](wf-04-pod-logs-annotations.md) | Pod log streaming, timestamp annotation, color annotation |
+| Extension setup | [extension-setup.md](extension-setup.md) | Extension install, enable/disable toggle, kubeconfig connectivity |
+| Pod logs and annotations | [pod-logs-annotations.md](pod-logs-annotations.md) | Pod log streaming, timestamp annotation, color annotation |

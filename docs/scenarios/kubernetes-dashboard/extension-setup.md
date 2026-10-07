@@ -1,4 +1,4 @@
-# WF-01: Extension Setup & Connectivity
+# Extension setup and connectivity
 
 This scenario verifies that the Kubernetes Dashboard extension installs correctly, responds to enable/disable toggling, and automatically reconnects when a valid kubeconfig is provided.
 
