@@ -78,6 +78,75 @@ curl --fail --silent --show-error \
   http://test-routing.example.invalid:18080/
 ```
 
+### Gateway API preparation with static Contour
+
+The same Contour installation can implement Gateway API, but static Contour
+reconciles one specific Gateway. The controller Gateway belongs in
+`projectcontour`; the test `HTTPRoute` can live in the isolated test namespace
+and attach to it across namespaces.
+
+First verify that the Gateway API CRDs are available:
+
+```sh
+kubectl get crd gateways.gateway.networking.k8s.io \
+  gatewayclasses.gateway.networking.k8s.io \
+  httproutes.gateway.networking.k8s.io
+```
+
+On a fresh Contour quickstart installation, configure its ConfigMap to reconcile
+the controller Gateway below. If `contour.yaml` already contains settings, add
+only the `gateway.gatewayRef` block and preserve the existing settings.
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: contour
+  namespace: projectcontour
+data:
+  contour.yaml: |
+    gateway:
+      gatewayRef:
+        name: contour
+        namespace: projectcontour
+    disablePermitInsecure: false
+    accesslog-format: envoy
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: contour
+spec:
+  controllerName: projectcontour.io/gateway-controller
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: contour
+  namespace: projectcontour
+spec:
+  gatewayClassName: contour
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: All
+```
+
+Save this as `contour-gateway.yaml`, apply it, and restart Contour so it reads
+the configuration. The status checks prove the controller accepted the class
+and programmed the listener before the route test starts.
+
+```sh
+kubectl apply -f contour-gateway.yaml
+kubectl -n projectcontour rollout restart deployment/contour
+kubectl -n projectcontour rollout status deployment/contour --timeout=120s
+kubectl get gatewayclass contour
+kubectl -n projectcontour get gateway contour
+```
+
 ## Prerequisites
 
 - Connected cluster and permission to create and list resources in an isolated
@@ -192,16 +261,19 @@ keep the Ingress portion as blocked by the prerequisite.
 
 ### 3. Gateway API relationships
 
-1. Run this check only when the Gateway API CRDs and a controller exist. In
-   **Gateway Classes**, select an installed class; otherwise record the whole
-   Gateway check as blocked.
-2. Apply the Gateway and HTTPRoute YAML below with that class. In **Gateways**,
-   verify `test-routing-gateway` and its HTTP listener. In **HTTPRoutes**,
-   verify `test-routing-route` references that Gateway and sends traffic to
-   `test-routing-service:8080`.
-3. Use **Inspect** or **Patch** for the complete parent-to-backend references.
-   On OpenShift, an optional Route targeting the same Service may be verified
-   in **Ingresses & Routes**; it does not need a separate test case.
+1. Complete **Gateway API preparation with static Contour**. In **Gateway
+   Classes**, verify `contour` with controller
+   `projectcontour.io/gateway-controller`. In **Gateways**, switch to
+   `projectcontour` and verify the `contour` Gateway is Running with listener
+   `http:80/HTTP`.
+2. Apply the `HTTPRoute` YAML below. In **HTTPRoutes**, switch to
+   `test-network-routing` and verify `test-routing-route` has parent `contour`
+   and backend `test-routing-service:8080`.
+3. Request `test-gateway.example.invalid` through the same Envoy port-forward;
+   expect HTTP 200. Use **Inspect** or **Patch** for the complete
+   parent-to-backend references. On OpenShift, an optional Route targeting the
+   same Service may be verified in **Ingresses & Routes**; it does not need a
+   separate test case.
 
 After the active routing checks, delete the Ingress and any Gateway API or
 Route resources, verify they leave their lists, then delete the namespace.
@@ -225,27 +297,12 @@ spec:
     targetPort: http
 ```
 
-## Gateway API setup
+## HTTPRoute fixture
 
-Use this only after replacing `REPLACE_WITH_INSTALLED_GATEWAY_CLASS` with an
-existing GatewayClass name:
+Apply this after Gateway API preparation; the controller Gateway already exists
+as `projectcontour/contour`.
 
 ```yaml
-apiVersion: gateway.networking.k8s.io/v1
-kind: Gateway
-metadata:
-  name: test-routing-gateway
-  namespace: test-network-routing
-spec:
-  gatewayClassName: REPLACE_WITH_INSTALLED_GATEWAY_CLASS
-  listeners:
-    - name: http
-      protocol: HTTP
-      port: 80
-      allowedRoutes:
-        namespaces:
-          from: Same
----
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -253,7 +310,11 @@ metadata:
   namespace: test-network-routing
 spec:
   parentRefs:
-    - name: test-routing-gateway
+    - name: contour
+      namespace: projectcontour
+      sectionName: http
+  hostnames:
+    - test-gateway.example.invalid
   rules:
     - backendRefs:
         - name: test-routing-service
