@@ -1,51 +1,37 @@
-# Ingress and Gateway API lifecycle
+# Ingress and Gateway API routing
 
-## Goal
+## Purpose
 
-Verify that the Network section exposes the routing resources installed in the
-cluster, relates an Ingress to a Service backend, and shows Gateway API
-resources only when their APIs and controller are available.
+Verify that Podman Desktop shows and updates the complete HTTP routing path:
 
-## Resources in this workflow
-
-| Resource | What it does in this test |
-| --- | --- |
-| Namespace | Isolates the routing fixture in `test-network-routing`. |
-| Deployment | Keeps two `test-routing-web` HTTP Pods running. |
-| Service | Gives the routing resources one stable backend: `test-routing-service:8080`. |
-| IngressClass | Selects the installed Ingress controller that will implement an Ingress. |
-| Ingress | Maps the test host and path to the Service backend. It is the standard Kubernetes HTTP-routing API. |
-| GatewayClass | Identifies the controller implementation used to program a Gateway. |
-| Gateway | Creates a controller-managed entry point and HTTP listener. |
-| HTTPRoute | Attaches routing rules to the Gateway and sends matching requests to the Service. |
-| OpenShift Route | OpenShift-specific alternative to Ingress; it exposes the same Service through a Route host. |
-
-## Cluster preparation: kind with Contour
-
-The Ingress object only describes a route; an Ingress controller must turn that
-description into reachable traffic. This workflow uses [Contour](https://projectcontour.io/)
-and its Envoy data plane. On kind, the Envoy Service is normally a
-`LoadBalancer` without an external address, so a temporary port-forward makes
-the controller reachable from the host for the HTTP check.
-
-First check whether Contour is already installed:
-
-```sh
-kubectl get pods -n projectcontour
+```text
+request → Ingress or Gateway/HTTPRoute → Service → web Pods
 ```
 
-If the namespace or controller Pods are absent, install Contour and wait for
-both its control plane and Envoy data plane:
+The test uses one backend, `test-routing-service:8080`.
+
+- **IngressClass** selects the Ingress controller.
+- **Ingress** sends a host and path to the Service.
+- **GatewayClass** selects the Gateway API controller.
+- **Gateway** opens the HTTP listener.
+- **HTTPRoute** sends matching requests from that listener to the Service.
+
+## One-time kind setup
+
+This workflow uses [Contour](https://projectcontour.io/) and Envoy. Contour
+implements both Ingress and Gateway API. On kind, Envoy has no external address,
+so use a temporary port-forward for HTTP checks.
+
+Install Contour only if `projectcontour` does not already exist:
 
 ```sh
 kubectl apply -f https://projectcontour.io/quickstart/contour.yaml
-kubectl wait --for=condition=Available deployment/contour -n projectcontour --timeout=120s
-kubectl rollout status daemonset/envoy -n projectcontour --timeout=120s
+kubectl -n projectcontour rollout status deployment/contour --timeout=120s
 ```
 
-Register the `contour` IngressClass. This maps an Ingress that specifies
-`ingressClassName: contour` to Contour's controller; without it, the Ingress
-can be stored by Kubernetes but will not be programmed for traffic.
+Apply this once as `contour-routing.yaml`. It creates the IngressClass and
+enables Contour to manage the `projectcontour/contour` Gateway. If the existing
+`contour.yaml` has other settings, keep them and add only `gateway.gatewayRef`.
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -54,50 +40,7 @@ metadata:
   name: contour
 spec:
   controller: projectcontour.io/ingress-controller
-```
-
-Save the YAML as `contour-ingressclass.yaml`, then apply and verify it:
-
-```sh
-kubectl apply -f contour-ingressclass.yaml
-kubectl get ingressclass contour
-```
-
-For the traffic step, keep this command running in one terminal:
-
-```sh
-kubectl port-forward -n projectcontour service/envoy 18080:80
-```
-
-The test request uses `--resolve` so the test hostname reaches that local
-Envoy endpoint without editing the host's DNS or `/etc/hosts`:
-
-```sh
-curl --fail --silent --show-error \
-  --resolve test-routing.example.invalid:18080:127.0.0.1 \
-  http://test-routing.example.invalid:18080/
-```
-
-### Gateway API preparation with static Contour
-
-The same Contour installation can implement Gateway API, but static Contour
-reconciles one specific Gateway. The controller Gateway belongs in
-`projectcontour`; the test `HTTPRoute` can live in the isolated test namespace
-and attach to it across namespaces.
-
-First verify that the Gateway API CRDs are available:
-
-```sh
-kubectl get crd gateways.gateway.networking.k8s.io \
-  gatewayclasses.gateway.networking.k8s.io \
-  httproutes.gateway.networking.k8s.io
-```
-
-On a fresh Contour quickstart installation, configure its ConfigMap to reconcile
-the controller Gateway below. If `contour.yaml` already contains settings, add
-only the `gateway.gatewayRef` block and preserve the existing settings.
-
-```yaml
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -135,36 +78,21 @@ spec:
           from: All
 ```
 
-Save this as `contour-gateway.yaml`, apply it, and restart Contour so it reads
-the configuration. The status checks prove the controller accepted the class
-and programmed the listener before the route test starts.
-
 ```sh
-kubectl apply -f contour-gateway.yaml
+kubectl apply -f contour-routing.yaml
 kubectl -n projectcontour rollout restart deployment/contour
 kubectl -n projectcontour rollout status deployment/contour --timeout=120s
-kubectl get gatewayclass contour
-kubectl -n projectcontour get gateway contour
 ```
 
-## Prerequisites
+Before any HTTP check, run this in a separate terminal:
 
-- Connected cluster and permission to create and list resources in an isolated
-  namespace.
-- For the Ingress traffic check: an installed Ingress controller and a usable
-  `IngressClass`.
-- For Gateway API checks: `gateway.networking.k8s.io` CRDs, a GatewayClass, and
-  a controller that programs Gateways and HTTPRoutes.
-- For OpenShift Route checks: the OpenShift Route API and a Route-capable
-  cluster. Otherwise, record Route coverage as not applicable.
+```sh
+kubectl port-forward -n projectcontour service/envoy 18080:80
+```
 
-Do not mark a missing API, controller, or RBAC-denied page as a product
-failure. Record it as a prerequisite gate. A page that is available but fails
-to list an applied resource is a failure.
+## Test fixture
 
-## Setup
-
-Apply this YAML with **Network → Apply YAML** or `kubectl apply -f -`:
+Apply this YAML through **Network → Apply YAML** or with `kubectl apply -f`.
 
 ```yaml
 apiVersion: v1
@@ -225,84 +153,7 @@ spec:
                 name: test-routing-service
                 port:
                   number: 8080
-```
-
-The cluster-preparation steps above create the `contour` class. When using a
-different controller, replace it with that controller's advertised class. If
-no class is installed, apply only the Namespace, Deployment, and Service and
-keep the Ingress portion as blocked by the prerequisite.
-
-## Dashboard workflow
-
-### 1. Ingress lifecycle
-
-1. Open **Network → Ingress Classes** and verify `contour` lists controller
-   `projectcontour.io/ingress-controller`. If the list is empty, complete
-   **Cluster preparation: kind with Contour** before applying the Ingress.
-2. Apply the base fixture with `ingressClassName: contour`.
-   In **Network → Services**, verify `test-routing-service` exposes
-   `8080/TCP`.
-3. Open **Network → Ingresses & Routes**. Verify `test-routing-ingress` is
-   listed. **Inspect** and **Patch** must show the selected class and backend
-   `test-routing-service:8080`. The **Summary** tab is useful for status and
-   metadata; use Inspect/Patch for the complete routing rule.
-
-### 2. Ingress traffic and recovery
-
-1. Run the documented Envoy port-forward and request
-   `test-routing.example.invalid`; expect HTTP 200.
-2. In the Ingress **Patch** tab, edit the complete manifest so the backend
-   Service name is invalid, then select **Patch resource**. The request must
-   no longer return HTTP 200. With Contour, a missing backend can appear as an
-   empty response (`curl` status `000`); record the observed failure rather
-   than expecting one specific HTTP error code.
-3. Restore `test-routing-service:8080` in the complete manifest and select
-   **Patch resource**. HTTP 200 must return.
-
-### 3. Gateway API relationships
-
-1. Complete **Gateway API preparation with static Contour**. In **Gateway
-   Classes**, verify `contour` with controller
-   `projectcontour.io/gateway-controller`. In **Gateways**, switch to
-   `projectcontour` and verify the `contour` Gateway is Running with listener
-   `http:80/HTTP`.
-2. Apply the `HTTPRoute` YAML below. In **HTTPRoutes**, switch to
-   `test-network-routing` and verify `test-routing-route` has parent `contour`
-   and backend `test-routing-service:8080`.
-3. Request `test-gateway.example.invalid` through the same Envoy port-forward;
-   expect HTTP 200. Use **Inspect** or **Patch** for the complete
-   parent-to-backend references. On OpenShift, an optional Route targeting the
-   same Service may be verified in **Ingresses & Routes**; it does not need a
-   separate test case.
-
-After the active routing checks, delete the Ingress and any Gateway API or
-Route resources, verify they leave their lists, then delete the namespace.
-
-## Optional OpenShift Route setup
-
-Use this only when the cluster serves `route.openshift.io/v1`:
-
-```yaml
-apiVersion: route.openshift.io/v1
-kind: Route
-metadata:
-  name: test-routing-route
-  namespace: test-network-routing
-spec:
-  host: test-routing.example.invalid
-  to:
-    kind: Service
-    name: test-routing-service
-  port:
-    targetPort: http
-```
-
-## HTTPRoute fixture
-
-Apply this after Gateway API preparation; the controller Gateway already exists
-as `projectcontour/contour`.
-
-```yaml
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -320,6 +171,41 @@ spec:
         - name: test-routing-service
           port: 8080
 ```
+
+## Checks in Podman Desktop
+
+### 1. Ingress
+
+1. In **Network → Ingress Classes**, verify `contour` is listed.
+2. In **Network → Ingresses & Routes**, select `test-network-routing` and
+   verify `test-routing-ingress` points to `test-routing-service:8080`.
+3. Request the Ingress host. Expect HTTP 200:
+
+   ```sh
+   curl --fail --silent --show-error \
+     --resolve test-routing.example.invalid:18080:127.0.0.1 \
+     http://test-routing.example.invalid:18080/
+   ```
+
+4. In the Ingress **Patch** tab, temporarily set the backend Service to a
+   nonexistent name. The request must stop returning HTTP 200. Restore
+   `test-routing-service:8080`; HTTP 200 must return.
+
+### 2. Gateway API
+
+1. In **Network → Gateway Classes**, verify `contour` is listed.
+2. In **Network → Gateways**, select `projectcontour` and verify `contour` is
+   Running with listener `http:80/HTTP`.
+3. In **Network → HTTPRoutes**, select `test-network-routing` and verify
+   `test-routing-route` has parent `contour` and backend
+   `test-routing-service:8080`.
+4. Request the route host. Expect HTTP 200:
+
+   ```sh
+   curl --fail --silent --show-error \
+     --resolve test-gateway.example.invalid:18080:127.0.0.1 \
+     http://test-gateway.example.invalid:18080/
+   ```
 
 ## Cleanup
 
