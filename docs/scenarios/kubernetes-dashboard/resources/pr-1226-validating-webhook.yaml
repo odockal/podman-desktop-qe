@@ -1,0 +1,23 @@
+# Sample resource for functional review of PR #1226 (ValidatingWebhookConfiguration).
+# Apply:   kubectl apply -f tests/resources/pr-1226-validating-webhook.yaml
+# Remove:  kubectl delete -f tests/resources/pr-1226-validating-webhook.yaml --ignore-not-found
+---
+# ValidatingWebhookConfiguration (#1226) - cluster-scoped
+# Scoped to the default namespace so it does not intercept pod creation cluster-wide;
+# failurePolicy Ignore means the unreachable URL never blocks anything.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata: { name: sample-vwc }
+webhooks:
+  - name: sample.example.com
+    admissionReviewVersions: ["v1"]
+    sideEffects: None
+    failurePolicy: Ignore
+    namespaceSelector:
+      matchLabels: { kubernetes.io/metadata.name: default }
+    clientConfig: { url: "https://example.com/validate" }
+    rules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE"]
+        resources: ["pods"]

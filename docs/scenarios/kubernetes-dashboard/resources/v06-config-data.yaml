@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: qe-v06-config
+  namespace: qe-v06-workflows
+data:
+  APP_MODE: dashboard
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: qe-v06-secret
+  namespace: qe-v06-workflows
+type: Opaque
+stringData:
+  API_TOKEN: qe-v06-token
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: qe-v06-config-consumer
+  namespace: qe-v06-workflows
+spec:
+  restartPolicy: Never
+  containers:
+    - name: consumer
+      image: busybox:1.36
+      command:
+        - sh
+        - -c
+        - test "$APP_MODE" = dashboard && test "$API_TOKEN" = qe-v06-token && touch /tmp/ready && sleep 3600
+      env:
+        - name: APP_MODE
+          valueFrom:
+            configMapKeyRef:
+              name: qe-v06-config
+              key: APP_MODE
+        - name: API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: qe-v06-secret
+              key: API_TOKEN
+      readinessProbe:
+        exec:
+          command: ["sh", "-c", "test -f /tmp/ready"]
+        initialDelaySeconds: 1
+        periodSeconds: 2
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: qe-v06-missing-key
+  namespace: qe-v06-workflows
+spec:
+  restartPolicy: Never
+  containers:
+    - name: consumer
+      image: busybox:1.36
+      command: ["sh", "-c", "test \"$RECOVERY_TOKEN\" = restored && sleep 3600"]
+      env:
+        - name: RECOVERY_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: qe-v06-secret
+              key: RECOVERY_TOKEN

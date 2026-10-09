@@ -1,0 +1,91 @@
+# Sample resources for functional review of the "config resource" PRs (#1219-#1225).
+# Apply all at once:   kubectl apply -f tests/resources/pr-tests.yaml
+# Remove all at once:  kubectl delete -f tests/resources/pr-tests.yaml --ignore-not-found
+---
+# Target Deployment for HPA (#1220) and PodDisruptionBudget (#1221)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  labels: { app: web }
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: web } }
+  template:
+    metadata: { labels: { app: web } }
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:stable
+          resources: { requests: { cpu: 100m }, limits: { cpu: 200m } }
+---
+# LimitRange (#1219)
+apiVersion: v1
+kind: LimitRange
+metadata: { name: mem-limit }
+spec:
+  limits: [{ type: Container, default: { cpu: 200m }, defaultRequest: { cpu: 100m } }]
+---
+# HorizontalPodAutoscaler (#1220)
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: { name: web-hpa }
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: web }
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource: { name: cpu, target: { type: Utilization, averageUtilization: 80 } }
+---
+# PodDisruptionBudget (#1221)
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: { name: web-pdb }
+spec:
+  minAvailable: 1
+  selector: { matchLabels: { app: web } }
+---
+# PriorityClass (#1222) - cluster-scoped
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata: { name: high-priority }
+value: 1000000
+globalDefault: false
+preemptionPolicy: PreemptLowerPriority
+description: "review sample"
+---
+# RuntimeClass (#1223) - cluster-scoped
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata: { name: sample-runc }
+handler: runc
+---
+# Lease (#1224)
+apiVersion: coordination.k8s.io/v1
+kind: Lease
+metadata: { name: sample-lease }
+spec:
+  holderIdentity: reviewer
+  leaseDurationSeconds: 30
+  renewTime: "2026-09-08T00:00:00.000000Z"
+---
+# MutatingWebhookConfiguration (#1225) - cluster-scoped
+# Scoped to the default namespace so it does not intercept pod creation cluster-wide;
+# failurePolicy Ignore means the unreachable URL never blocks anything.
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata: { name: sample-mwc }
+webhooks:
+  - name: sample.example.com
+    admissionReviewVersions: ["v1"]
+    sideEffects: None
+    failurePolicy: Ignore
+    namespaceSelector:
+      matchLabels: { kubernetes.io/metadata.name: default }
+    clientConfig: { url: "https://example.com/mutate" }
+    rules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE"]
+        resources: ["pods"]

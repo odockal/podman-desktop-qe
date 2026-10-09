@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: qe-v06-claim
+  namespace: qe-v06-workflows
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: qe-v06-manual
+  volumeName: qe-v06-pv
+  resources:
+    requests:
+      storage: 500Mi

@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: qe-v06-rbac-check
+  namespace: qe-v06-workflows
+spec:
+  serviceAccountName: qe-v06-reader
+  restartPolicy: Never
+  containers:
+    - name: rbac-check
+      image: curlimages/curl:8.12.1
+      command:
+        - sh
+        - -ec
+        - |
+          token="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)"
+          ca=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          auth="Authorization: Bearer ${token}"
+          curl --fail --silent --show-error --cacert "$ca" -H "$auth" \
+            https://kubernetes.default.svc/api/v1/namespaces/qe-v06-workflows/pods >/tmp/pods.json
+          configmaps_status="$(curl --silent --output /tmp/configmaps.json --write-out '%{http_code}' \
+            --cacert "$ca" -H "$auth" \
+            https://kubernetes.default.svc/api/v1/namespaces/qe-v06-workflows/configmaps)"
+          test "$configmaps_status" = 403
+          printf 'pods=200 configmaps=%s\\n' "$configmaps_status"
+          touch /tmp/ready
+          sleep 3600
+      readinessProbe:
+        exec:
+          command: ["sh", "-c", "test -f /tmp/ready"]
+        initialDelaySeconds: 1
+        periodSeconds: 2
