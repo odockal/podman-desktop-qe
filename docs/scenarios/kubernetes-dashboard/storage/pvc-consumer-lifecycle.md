@@ -3,8 +3,8 @@
 ## Goal
 
 Verify that the default StorageClass dynamically provisions storage only when
-a consumer is scheduled, and that a marker on the PVC survives replacement of
-that consumer.
+a consumer is scheduled, and that a marker on the PVC survives recreating that
+consumer.
 
 ## Prerequisite
 
@@ -82,13 +82,16 @@ spec:
    `test-storage-workflow/test-storage-claim`, `ReadWriteOnce`, and the
    StorageClass reclaim policy.
 
-## Consumer replacement and persistence
+## Consumer recreation and persistence
 
-1. In **Compute → Pods**, use **Restart** for `test-storage-consumer` and
-   confirm the action.
-2. Wait for the replacement Pod with the same name to return to `Running`.
-3. Open its terminal and run `cat /data/marker`. It must return the marker
-   recorded before restart. The PVC and PV must remain `Bound`.
+`test-storage-consumer` is a standalone Pod. **Restart Pod** deletes it, but
+Kubernetes does not recreate standalone Pods automatically. Do not expect the
+Restart action to produce a replacement Pod.
+
+1. Use **Restart** in **Compute → Pods** and verify the Pod is deleted.
+2. Reapply the consumer YAML from the setup through **Apply YAML**.
+3. Verify the new `test-storage-consumer` is `Running`. Its **Logs** must show
+   `storage-test`; the PVC and PV must remain `Bound`.
 
 ## Cleanup and expected reclaim result
 
@@ -107,4 +110,4 @@ spec:
 - The PVC remains Pending before a consumer exists.
 - Creating the consumer makes the Pod Running and binds both the PVC and PV.
 - The PV list exposes the claim, class, size, mode, phase, and reclaim policy.
-- Restarting the consumer preserves the marker stored on the PVC.
+- Recreating the consumer preserves the marker stored on the PVC.
