@@ -106,17 +106,21 @@ spec:
    `50000`. On **Network → Port Forwarding**, verify
    Name=`test-network-service`, Type=Service, Local=`50000`, and Remote=`8080`.
    `curl -fsS http://localhost:50000` must return HTTP 200.
-5. Patch the Service selector to `app: test-network-broken`. Refresh
+5. In the Service **Patch** tab, edit the current complete manifest so the
+   selector is `app: test-network-broken`, then select **Patch resource**.
+   Do not replace the editor with a partial `spec` fragment. Refresh
    **Endpoints** and **Endpoint Slices**: both must have no ready backends. The
    existing forward must no longer return HTTP 200; if the UI reports an error,
    it must clearly explain that no backend Pod is available rather than expose
    an undefined Pod value.
-6. Patch the selector back to `app: test-network-web`. Verify the Endpoints,
-   EndpointSlice, and HTTP 200 response return.
-7. Apply this policy from **Network → Apply YAML** or `kubectl apply -f -` and
-   inspect it in **Network → Network Policies**. In **Summary**, **Inspect**,
-   and **Patch**, verify policy type `Ingress`, the backend and client
-   selectors, and TCP port `8080`.
+6. In the same complete manifest, restore the selector to
+   `app: test-network-web` and select **Patch resource**. Verify the Endpoints,
+   EndpointSlice, client logs, and HTTP 200 response return.
+7. Apply this policy from **Network → Apply YAML** or `kubectl apply -f -`.
+   In **Network → Network Policies**, verify policy type `Ingress` and backend
+   selector `app=test-network-web` in the list. Open the policy and use
+   **Inspect** or **Patch** to verify the client selector and TCP port `8080`.
+   The policy **Summary** tab currently shows metadata only.
 
    ```yaml
    apiVersion: networking.k8s.io/v1
