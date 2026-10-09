@@ -13,8 +13,7 @@ record that capability before marking a negative connectivity case as passed.
 
 | Group | Workflow | Result |
 | --- | --- | --- |
-| Service connectivity | [Service and port-forwarding lifecycle](service-port-forwarding.md) | Endpoints, HTTP connectivity, broken selector, and recovery |
-| Service backends and policy | [Endpoints, EndpointSlices, and NetworkPolicy](service-endpoints-policy.md) | Backend discovery and policy configuration with a CNI gate |
+| Network connectivity | [Network connectivity workflow](service-port-forwarding.md) | Service, generated Endpoints and EndpointSlice, Pod replacement, port forwarding, selector recovery, and NetworkPolicy traffic with a CNI gate |
 | Routing APIs | [Ingress and Gateway API lifecycle](ingress-gateway-routing.md) | Ingress, Route, and Gateway API visibility with explicit controller gates |
 
 The Network menu also has standalone pages for **Ingress Classes**, **Gateway

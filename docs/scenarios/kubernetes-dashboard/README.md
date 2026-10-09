@@ -71,8 +71,7 @@ explain its backend, policy, and routing behavior. All workflows use inline
 
 | Group | Workflow | Prerequisite |
 | --- | --- | --- |
-| Service connectivity | [Service and port-forwarding lifecycle](network/service-port-forwarding.md) | Connected cluster and free local port 50000 |
-| Service backends and policy | [Endpoints, EndpointSlices, and NetworkPolicy](network/service-endpoints-policy.md) | CNI enforcement for the negative policy check |
+| Network connectivity | [Network connectivity workflow](network/service-port-forwarding.md) | Connected cluster, free local port 50000, and a policy-enforcing CNI for the allow/deny check |
 | Routing APIs | [Ingress and Gateway API lifecycle](network/ingress-gateway-routing.md) | Ingress/Gateway controller and corresponding APIs installed |
 
 Start with [Network workflows](network/README.md).
