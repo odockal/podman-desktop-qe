@@ -6,6 +6,20 @@ Verify that the Network section exposes the routing resources installed in the
 cluster, relates an Ingress to a Service backend, and shows Gateway API
 resources only when their APIs and controller are available.
 
+## Resources in this workflow
+
+| Resource | What it does in this test |
+| --- | --- |
+| Namespace | Isolates the routing fixture in `test-network-routing`. |
+| Deployment | Keeps two `test-routing-web` HTTP Pods running. |
+| Service | Gives the routing resources one stable backend: `test-routing-service:8080`. |
+| IngressClass | Selects the installed Ingress controller that will implement an Ingress. |
+| Ingress | Maps the test host and path to the Service backend. It is the standard Kubernetes HTTP-routing API. |
+| GatewayClass | Identifies the controller implementation used to program a Gateway. |
+| Gateway | Creates a controller-managed entry point and HTTP listener. |
+| HTTPRoute | Attaches routing rules to the Gateway and sends matching requests to the Service. |
+| OpenShift Route | OpenShift-specific alternative to Ingress; it exposes the same Service through a Route host. |
+
 ## Prerequisites
 
 - Connected cluster and permission to create and list resources in an isolated
@@ -92,29 +106,44 @@ Ingress portion as blocked by the prerequisite.
 
 ## Dashboard workflow
 
-1. Select `test-network-routing`. In **Network → Services**, verify
-   `test-routing-service` has its selector and port. In **Endpoints** and
-   **Endpoint Slices**, verify two ready backends.
-2. Open **Network → Ingresses & Routes**. Verify `test-routing-ingress` is
-   listed, then inspect **Summary**, **Inspect**, and **Patch**. The backend
-   must reference `test-routing-service:8080` and the configured class.
-3. With a running Ingress controller, obtain its reachable address and request
-   the configured host. HTTP must return 200. Patch the Ingress backend to an
-   invalid Service name and verify the request no longer succeeds; restore the
-   backend and verify HTTP 200 returns.
-4. Open **Network → Ingress Classes** and verify the installed class is shown.
-   If the class, controller, or page is unavailable, record the prerequisite
-   result instead of treating the traffic check as passed.
-5. When Gateway API is installed, open **Gateway Classes**, **Gateways**, and
-   **HTTPRoutes**. Apply the Gateway API YAML below, then verify each object is
-   listed and its **Summary**, **Inspect**, and **Patch** views show the
-   parent-to-backend relationship.
-6. For an OpenShift cluster, apply a Route that targets
-   `test-routing-service:8080`; verify it appears in **Ingresses & Routes**
-   and HTTP succeeds. Do not run this optional check on a non-OpenShift
-   cluster.
-7. Delete the Ingress and any Gateway API/Route resources. Verify they leave
-   their lists and backend traffic is no longer exposed. Delete the namespace.
+### 1. Ingress lifecycle
+
+1. Open **Network → Ingress Classes** and select an installed class. If the
+   list is empty (as on a bare kind cluster), record this workflow as blocked
+   by the controller prerequisite; do not apply the Ingress.
+2. Apply the base fixture and set `ingressClassName` to that installed class.
+   In **Network → Services**, verify `test-routing-service` exposes
+   `8080/TCP`.
+3. Open **Network → Ingresses & Routes**. Verify `test-routing-ingress` is
+   listed. **Inspect** and **Patch** must show the selected class and backend
+   `test-routing-service:8080`. The **Summary** tab is useful for status and
+   metadata; use Inspect/Patch for the complete routing rule.
+
+### 2. Ingress traffic and recovery
+
+1. Obtain the Ingress controller's reachable address and request
+   `test-routing.example.invalid`; expect HTTP 200.
+2. In the Ingress **Patch** tab, edit the complete manifest so the backend
+   Service name is invalid, then select **Patch resource**. The request must
+   no longer succeed.
+3. Restore `test-routing-service:8080` in the complete manifest and select
+   **Patch resource**. HTTP 200 must return.
+
+### 3. Gateway API relationships
+
+1. Run this check only when the Gateway API CRDs and a controller exist. In
+   **Gateway Classes**, select an installed class; otherwise record the whole
+   Gateway check as blocked.
+2. Apply the Gateway and HTTPRoute YAML below with that class. In **Gateways**,
+   verify `test-routing-gateway` and its HTTP listener. In **HTTPRoutes**,
+   verify `test-routing-route` references that Gateway and sends traffic to
+   `test-routing-service:8080`.
+3. Use **Inspect** or **Patch** for the complete parent-to-backend references.
+   On OpenShift, an optional Route targeting the same Service may be verified
+   in **Ingresses & Routes**; it does not need a separate test case.
+
+After the active routing checks, delete the Ingress and any Gateway API or
+Route resources, verify they leave their lists, then delete the namespace.
 
 ## Optional OpenShift Route setup
 
