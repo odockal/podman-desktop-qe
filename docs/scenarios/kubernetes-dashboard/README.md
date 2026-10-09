@@ -81,5 +81,4 @@ Start with [Network workflows](network/README.md).
 
 | Scenario | File | Description |
 |----------|------|-------------|
-| Extension setup | [extension-setup.md](extension-setup.md) | Extension install, enable/disable toggle, kubeconfig connectivity |
 | Pod logs and annotations | [pod-logs-annotations.md](pod-logs-annotations.md) | Pod log streaming, timestamp annotation, color annotation |

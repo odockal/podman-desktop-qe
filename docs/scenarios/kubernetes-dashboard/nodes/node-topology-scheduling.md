@@ -17,7 +17,10 @@ kubectl get nodes -o wide
 
 The expected topology is one control-plane node and two worker nodes. The
 control-plane node has a `NoSchedule` taint; that is expected and must not be
-treated as a failure.
+treated as a failure. Before applying the scheduling fixture, verify every node
+reports allocatable CPU, memory, and Pods in its Summary. The workflow needs
+those resources to place the test workload predictably; it does not require a
+fixed numeric capacity because Kind uses the host's available resources.
 
 ## 1. Inspect the node inventory
 

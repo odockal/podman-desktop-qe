@@ -5,6 +5,14 @@
 Verify default resource injection, quota usage and rejection, plus visible PDB
 state changes caused by a related Deployment.
 
+## What each resource proves
+
+| Resource | Role in the workflow | Observable result |
+| --- | --- | --- |
+| `test-limits` LimitRange | Supplies default CPU request and limit values when a container omits resources. | The Dashboard Inspect view shows the injected values on `test-defaulted`. |
+| `test-quota` ResourceQuota | Caps Pod count and aggregate CPU requests and limits in the namespace. | Its `status.used` changes after an admitted Pod; an oversized Pod is rejected. |
+| `test-pdb` PodDisruptionBudget | States that at least one `test-policy-target` Pod should remain available during voluntary eviction. | Its health counters change as Deployment availability changes. |
+
 ## Setup
 
 Apply this YAML with `kubectl apply -f -` or Podman Desktop **Apply YAML**:
@@ -49,23 +57,6 @@ spec:
     - name: sleeper
       image: registry.access.redhat.com/ubi9/ubi-minimal:latest
       command: ["sh", "-c", "sleep 3600"]
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: test-quota-usage
-  namespace: test-config-verify
-spec:
-  containers:
-    - name: sleeper
-      image: registry.access.redhat.com/ubi9/ubi-minimal:latest
-      command: ["sh", "-c", "sleep 3600"]
-      resources:
-        requests:
-          cpu: 100m
-        limits:
-          cpu: 200m
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -101,7 +92,7 @@ spec:
     matchLabels:
       app: test-policy-target
 ```
-The YAML creates `test-quota`, `test-limits`, two Pods, the two-replica
+The YAML creates `test-quota`, `test-limits`, one defaulted Pod, the two-replica
 `test-policy-target` Deployment, and `test-pdb` in
 `test-config-verify`.
 
@@ -113,8 +104,29 @@ The YAML creates `test-quota`, `test-limits`, two Pods, the two-replica
    verify those CPU values were injected into its container resources.
 3. Open **Config → Resource Quotas**, inspect `test-quota`, and record
    `status.used`.
-4. Verify `test-quota-usage` is Running. Refresh the quota page and confirm
-   the pod and CPU usage increased.
+4. Record `status.used` as the baseline, then apply this usage Pod:
+
+   ```yaml
+   apiVersion: v1
+   kind: Pod
+   metadata:
+     name: test-quota-usage
+     namespace: test-config-verify
+   spec:
+     containers:
+       - name: sleeper
+         image: registry.access.redhat.com/ubi9/ubi-minimal:latest
+         command: ["sh", "-c", "sleep 3600"]
+         resources:
+           requests:
+             cpu: 100m
+           limits:
+             cpu: 200m
+   ```
+
+   Verify `test-quota-usage` is Running. Refresh the quota page and compare
+   `status.used` with the baseline: `pods` increases by one, `requests.cpu`
+   by `100m`, and `limits.cpu` by `200m`.
 5. Apply the over-quota Pod:
 
    ```yaml
@@ -149,6 +161,14 @@ The YAML creates `test-quota`, `test-limits`, two Pods, the two-replica
    verify its counters update.
 3. Scale back to `2`, wait for both Pods to be Running, and confirm the PDB
    returns to its original healthy and allowed-disruption values.
+
+Scaling the Deployment from two replicas to one deletes a Pod because the
+Deployment controller is reducing desired replicas. The Pods do **not** finish
+because of completions, and this is not an eviction test. The PDB is not the
+actor that terminates the Pod here; the check only proves that its Dashboard
+counters reflect the resulting availability. A true PDB enforcement test would
+need a voluntary eviction against a node, which is intentionally outside this
+safe local workflow.
 
 ## Cleanup
 

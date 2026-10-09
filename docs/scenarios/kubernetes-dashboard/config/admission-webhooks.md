@@ -6,6 +6,22 @@ Verify that the dashboard presents live mutating and validating webhook
 configuration, and that Kubernetes invokes a TLS-backed service to mutate a
 valid Pod and reject an invalid Pod.
 
+## What the webhooks do
+
+Admission webhooks run after the Kubernetes API receives an object but before
+it stores that object. This workflow uses the same TLS-backed Service for two
+different decisions:
+
+| Configuration | Purpose | Expected effect |
+| --- | --- | --- |
+| `test-mutating-webhook` | Changes an accepted Pod before it is persisted. | Adds `test-mutated: "true"` to every Pod created in the target namespace. |
+| `test-validating-webhook` | Accepts or rejects the final object. | Allows only Pods labelled `test-valid: "true"`; rejects the other test Pod. |
+
+The `namespaceSelector` limits both hooks to `test-webhook-target`. The
+control namespace is deliberately excluded so the webhook server remains
+available. `failurePolicy: Fail` makes an unavailable webhook fail closed,
+which is why the workflow must be run only in these disposable namespaces.
+
 ## Prerequisites
 
 - A working multi-node Kind context with permission to create cluster-scoped

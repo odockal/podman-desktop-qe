@@ -25,11 +25,7 @@ and 443 on that node.
 In Podman Desktop, select `kind-kubernetes-dashboard-test` as the active
 Kubernetes context.
 
-## 2. Add optional cluster components
-
-Use the matching section in the [cluster preparation guide](../../../cluster-test-prerequisites.md)
-when the environment needs one of these components:
-
-- Metrics Server
-- Contour and its `contour` IngressClass
-- Gateway API CRDs and Contour Gateway configuration
+For the optional Metrics Server, Contour, and Gateway API configuration, use
+the command-and-rationale instructions in the shared
+[cluster preparation guide](../../../cluster-test-prerequisites.md). Install a
+component only when its linked workflow needs it.

@@ -5,6 +5,15 @@
 Verify that ConfigMaps and Secrets are displayed correctly and that a workload
 reacts to missing or invalid configuration, then recovers after restoration.
 
+## What each resource proves
+
+| Resource | Role in the workflow | Observable result |
+| --- | --- | --- |
+| `test-config` ConfigMap | Supplies the non-secret `APP_MODE` setting. | The consumer only stays running when `APP_MODE=dashboard`. |
+| `test-secret` Secret | Supplies `API_TOKEN` at container start. | Replacing it with an invalid value makes a newly created consumer fail its startup check. |
+| `test-config-consumer` Deployment | Reads both values as environment variables. | Its Pod demonstrates that the Dashboard shows configuration objects and a real workload dependency. |
+| `test-missing-secret` Deployment | References a Secret that does not exist initially. | Its Pod remains Pending/ContainerCreating until the referenced Secret is created. |
+
 ## Setup
 
 Apply this YAML with `kubectl apply -f -` or paste it into Podman Desktop
@@ -100,7 +109,8 @@ spec:
 It creates the `test-config-verify` namespace, `test-config`,
 `test-secret`, a valid `test-config-consumer` Deployment, and a
 `test-missing-secret` Deployment that intentionally references a Secret that
-does not yet exist.
+does not yet exist. Kubernetes can schedule the missing-secret Pod, but its
+kubelet cannot create the container environment until the Secret exists.
 
 ## Dashboard workflow
 
@@ -109,7 +119,8 @@ does not yet exist.
 2. Inspect `test-config` and `test-secret`. Verify their keys in
    **Summary**, **Inspect**, and **Patch**.
 3. Open **Compute → Deployments** and **Pods**. `test-config-consumer` must
-   be `Running`; the missing-secret workload must not become `Running`.
+   be `Running`; the missing-secret workload must not become `Running` because
+   the referenced Secret is absent.
 4. Apply the recovery Secret:
 
    ```yaml
@@ -144,7 +155,8 @@ does not yet exist.
 
 2. In **Pods**, restart the `test-config-consumer` Pod from its row action.
    The replacement Pod must fail because its startup command requires
-   `API_TOKEN=test-token`.
+   `API_TOKEN=test-token`. Existing containers do not reread an environment
+   variable when a Secret changes, which is why the restart is required.
 3. Restore the valid Secret and restart the failed Pod again:
 
    ```yaml

@@ -5,6 +5,16 @@
 Verify namespaced and cluster-scoped RBAC relationships, live authorization,
 Lease refresh, PriorityClass, and RuntimeClass presentation.
 
+## What each resource does
+
+| Resource | Kubernetes purpose | What this workflow checks |
+| --- | --- | --- |
+| ServiceAccount, Role, and RoleBinding | Give a workload identity and namespaced API permissions. | `test-reader` can list Pods but cannot read ConfigMaps. |
+| ClusterRole and ClusterRoleBinding | Grant the same identity permissions for cluster-scoped resources. | `test-reader` can read Nodes. |
+| Lease | Stores lightweight leader-election or heartbeat state. It does not schedule or restart Pods. | Editing the holder identity and transition count refreshes the list and Inspect views. |
+| PriorityClass | Assigns scheduling priority to Pods. It only has an effect when the scheduler must choose between competing Pods. | The Dashboard shows its value and default flag; the RuntimeClass Pod references it. |
+| RuntimeClass | Selects a container runtime handler configured on the node. | The Dashboard presents the class and a Pod can use it only when the handler exists. |
+
 ## Setup
 
 Apply this YAML with `kubectl apply -f -` or Podman Desktop **Apply YAML**:
@@ -163,9 +173,20 @@ Role/RoleBinding, `test-node-reader` ClusterRole/ClusterRoleBinding,
 3. Open **Config → Priority Classes** and inspect `test-priority`. Verify
    the value is `100000` and it is not the global default.
 
+   `test-priority` does not preempt another Pod in this workflow because the
+   Kind cluster has available capacity. Its purpose is to verify presentation
+   and the Pod reference below. Preemption needs deliberately constrained node
+   capacity and is not a stable release test.
+
 ## RuntimeClass workflow
 
 Only run this part when the cluster node runtime supports the `runc` handler.
+`RuntimeClass` is not a request to install a runtime; it selects a handler
+already configured by the node runtime. Check availability first:
+
+```sh
+kubectl get runtimeclass
+```
 Apply this YAML:
 
 ```yaml
