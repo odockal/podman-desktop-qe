@@ -57,6 +57,7 @@ spec:
     - name: sleeper
       image: registry.access.redhat.com/ubi9/ubi-minimal:latest
       command: ["sh", "-c", "sleep 3600"]
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
