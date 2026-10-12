@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: qe-v06-secret
+  namespace: qe-v06-workflows
+type: Opaque
+stringData:
+  API_TOKEN: qe-v06-token
+  RECOVERY_TOKEN: restored

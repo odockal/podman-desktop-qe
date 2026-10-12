@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qe-v06-policy-target
+  namespace: qe-v06-workflows
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: qe-v06-policy-target
+  template:
+    metadata:
+      labels:
+        app: qe-v06-policy-target
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.25-alpine
+          resources:
+            requests:
+              cpu: 100m
+            limits:
+              cpu: 200m
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: qe-v06-hpa
+  namespace: qe-v06-workflows
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: qe-v06-policy-target
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: qe-v06-pdb
+  namespace: qe-v06-workflows
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: qe-v06-policy-target
+---
+apiVersion: coordination.k8s.io/v1
+kind: Lease
+metadata:
+  name: qe-v06-lease
+  namespace: qe-v06-workflows
+spec:
+  holderIdentity: qe-v06-holder
+  leaseDurationSeconds: 30
+  renewTime: "2026-10-05T12:00:00.000000Z"

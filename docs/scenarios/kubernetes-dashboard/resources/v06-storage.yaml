@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: qe-v06-workflows
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: qe-v06-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: qe-v06-manual
+  hostPath:
+    path: /tmp/qe-v06-storage
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: qe-v06-manual
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: Immediate

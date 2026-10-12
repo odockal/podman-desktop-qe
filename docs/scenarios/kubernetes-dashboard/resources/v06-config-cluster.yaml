@@ -1,0 +1,40 @@
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: qe-v06-priority
+value: 1000000
+globalDefault: false
+preemptionPolicy: PreemptLowerPriority
+description: Priority class used by the v0.6 dashboard workflow.
+---
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
+metadata:
+  name: qe-v06-runtime
+handler: runc
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: qe-v06-priority-pod
+  namespace: qe-v06-workflows
+spec:
+  priorityClassName: qe-v06-priority
+  restartPolicy: Never
+  containers:
+    - name: priority-consumer
+      image: busybox:1.36
+      command: ["sh", "-c", "sleep 3600"]
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: qe-v06-runtime-pod
+  namespace: qe-v06-workflows
+spec:
+  runtimeClassName: qe-v06-runtime
+  restartPolicy: Never
+  containers:
+    - name: runtime-consumer
+      image: busybox:1.36
+      command: ["sh", "-c", "sleep 3600"]

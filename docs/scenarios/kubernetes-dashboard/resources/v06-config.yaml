@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: qe-v06-quota
+  namespace: qe-v06-workflows
+spec:
+  hard:
+    pods: "10"
+    requests.cpu: "2"
+    limits.cpu: "4"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: qe-v06-limits
+  namespace: qe-v06-workflows
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: 200m
+      defaultRequest:
+        cpu: 100m

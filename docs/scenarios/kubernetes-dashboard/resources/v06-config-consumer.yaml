@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: qe-v06-config-consumer
+  namespace: qe-v06-workflows
+spec:
+  restartPolicy: Never
+  containers:
+    - name: consumer
+      image: busybox:1.36
+      command:
+        - sh
+        - -c
+        - test "$APP_MODE" = dashboard && test "$API_TOKEN" = qe-v06-token && touch /tmp/ready && sleep 3600
+      env:
+        - name: APP_MODE
+          valueFrom:
+            configMapKeyRef:
+              name: qe-v06-config
+              key: APP_MODE
+        - name: API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: qe-v06-secret
+              key: API_TOKEN
+      readinessProbe:
+        exec:
+          command: ["sh", "-c", "test -f /tmp/ready"]
+        initialDelaySeconds: 1
+        periodSeconds: 2
