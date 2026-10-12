@@ -64,6 +64,7 @@ metadata:
   namespace: test-webhook-control
 data:
   server.py: |
+    import base64
     import json
     import ssl
     from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -74,7 +75,7 @@ data:
             response = {"uid": review["request"]["uid"], "allowed": allowed}
             if patch:
                 response["patchType"] = "JSONPatch"
-                response["patch"] = patch
+                response["patch"] = base64.b64encode(patch.encode()).decode()
             if message:
                 response["status"] = {"message": message}
             body = json.dumps({"apiVersion": "admission.k8s.io/v1", "kind": "AdmissionReview", "response": response}).encode()
@@ -97,7 +98,9 @@ data:
                 self.respond(review, False, message="unknown endpoint")
 
     server = HTTPServer(("", 8443), AdmissionHandler)
-    server.socket = ssl.wrap_socket(server.socket, certfile="/tls/tls.crt", keyfile="/tls/tls.key", server_side=True)
+    tls_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    tls_context.load_cert_chain(certfile="/tls/tls.crt", keyfile="/tls/tls.key")
+    server.socket = tls_context.wrap_socket(server.socket, server_side=True)
     server.serve_forever()
 ---
 apiVersion: apps/v1
